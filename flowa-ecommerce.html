@@ -689,7 +689,7 @@
           <i class="fa-solid ${p.icon} text-3xl text-[#C5A880]"></i>
         </div>
         <p class="text-sm font-medium leading-snug">${escapeHtml(p.name)}</p>
-        <p class="text-[11px] text-[#6B6B6B] mt-1 leading-snug flex-1">${escapeHtml(p.desc || '')}</p>
+        <p class="text-[11px] text-[#6B6B6B] mt-1 leading-snug flex-1">${escapeHtml(p.description || '')}</p>
         <p class="text-sm font-medium mt-3">${money(p.price)}</p>
         <button class="btn-order-routine mt-3 w-full border border-black py-2.5 text-[11px] tracked-sm hover:bg-black hover:text-white transition-colors" data-id="${p.id}">
           COMMANDER
@@ -894,7 +894,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium truncate">${escapeHtml(p.name)}</p>
-          <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.desc || '')}</p>
+          <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.description || '')}</p>
           <p class="text-sm font-medium mt-1">${money(p.price)}</p>
         </div>
         <button data-id="${p.id}" class="btn-delete-product text-[#6B6B6B] hover:text-red-600 transition-colors shrink-0" aria-label="Supprimer le produit">
@@ -917,7 +917,7 @@
   $('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('input-product-name').value.trim();
-    const desc = $('input-product-desc').value.trim();
+    const description = $('input-product-desc').value.trim();
     const price = parseInt($('input-product-price').value, 10);
     const icon = $('input-product-icon').value;
 
@@ -926,7 +926,7 @@
     const submitBtn = $('product-form').querySelector('button[type="submit"]');
     submitBtn.disabled = true;
 
-    const { error } = await supabase.from('products').insert({ name, price, icon, desc });
+    const { error } = await supabase.from('products').insert({ name, price, icon, description });
 
     submitBtn.disabled = false;
     if (error) { alert("Erreur lors de l'ajout du produit."); console.error(error); return; }
