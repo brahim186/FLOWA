@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLOWA — Soulagement Naturel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  * { font-family: 'Jost', sans-serif; }
+  body { color: #111111; }
+  .tracked { letter-spacing: 0.14em; }
+  .tracked-sm { letter-spacing: 0.08em; }
+  .chevron { transition: transform 0.25s ease; }
+  .rotate-180 { transform: rotate(180deg); }
+  .fade-in { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .rise-in { animation: riseIn 0.35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .toast { animation: toastIn 0.25s ease, toastOut 0.25s ease 2.2s forwards; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px);} to { opacity:1; transform: translateY(0);} }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid #C5A880; outline-offset: 2px; }
+  ::selection { background: #C5A880; color: #111111; }
+  .scrollbar-none::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body class="bg-white text-[#111111]">
+
+<!-- ============ ANNOUNCEMENT BAR ============ -->
+<div class="bg-black text-white text-center text-[11px] sm:text-xs tracked-sm py-2.5 px-4">
+  LIVRAISON OFFERTE DÈS 300 DH &nbsp;•&nbsp; PAIEMENT À LA LIVRAISON &nbsp;•&nbsp; 100% INGRÉDIENTS NATURELS
+</div>
+
+<!-- ============ HEADER / NAV ============ -->
+<header class="sticky top-0 z-30 bg-white border-b border-[#E5E5E5]">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+    <button id="btn-mobile-menu" class="md:hidden text-lg w-8" aria-label="Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <a href="#" class="text-xl sm:text-2xl font-semibold tracked select-none">FLOWA</a>
+
+    <nav class="hidden md:flex items-center gap-10 text-xs tracked-sm">
+      <a href="#produit" class="hover:text-[#C5A880] transition-colors">Le Produit</a>
+      <a href="#routine" class="hover:text-[#C5A880] transition-colors">Notre Routine</a>
+      <a href="#a-propos" class="hover:text-[#C5A880] transition-colors">Notre Histoire</a>
+      <a href="#contact" class="hover:text-[#C5A880] transition-colors">Contact</a>
+    </nav>
+
+    <div class="flex items-center gap-5 sm:gap-6 text-lg">
+      <div id="auth-area" class="relative">
+        <button id="btn-account" aria-label="Compte" class="hover:text-[#C5A880] transition-colors"><i class="fa-regular fa-user"></i></button>
+        <div id="account-dropdown" class="hidden absolute right-0 top-full mt-3 w-56 bg-white border border-[#E5E5E5] shadow-lg text-sm z-40">
+          <div id="account-dropdown-guest" class="p-4">
+            <p class="text-xs text-[#6B6B6B] mb-3">Connectez-vous pour suivre vos commandes</p>
+            <button id="btn-google-login" class="w-full flex items-center justify-center gap-2 border border-[#E5E5E5] py-2.5 text-xs tracked-sm hover:bg-stone-50 transition-colors">
+              <i class="fa-brands fa-google text-[#C5A880]"></i> CONTINUER AVEC GOOGLE
+            </button>
+          </div>
+          <div id="account-dropdown-user" class="hidden">
+            <div class="px-4 py-3 border-b border-[#E5E5E5]">
+              <p id="account-email" class="text-xs text-[#6B6B6B] truncate">—</p>
+            </div>
+            <button id="btn-my-orders" class="w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors text-xs tracked-sm"><i class="fa-solid fa-receipt mr-2"></i>MES COMMANDES</button>
+            <button id="btn-admin-entry" class="hidden w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors text-xs tracked-sm border-t border-[#E5E5E5]"><i class="fa-solid fa-gear mr-2"></i>ESPACE PRO</button>
+            <button id="btn-logout" class="w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors text-xs tracked-sm border-t border-[#E5E5E5] text-red-600"><i class="fa-solid fa-right-from-bracket mr-2"></i>SE DÉCONNECTER</button>
+          </div>
+        </div>
+      </div>
+      <button aria-label="Favoris" class="hidden sm:block hover:text-[#C5A880] transition-colors"><i class="fa-regular fa-heart"></i></button>
+      <button aria-label="Panier" class="relative hover:text-[#C5A880] transition-colors">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span id="cart-badge" class="absolute -top-2 -right-2 bg-black text-white text-[10px] leading-none rounded-full w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- mobile menu -->
+  <div id="mobile-menu-panel" class="hidden md:hidden border-t border-[#E5E5E5] bg-white">
+    <nav class="flex flex-col px-5 py-4 text-xs tracked-sm gap-4">
+      <a href="#produit" class="mobile-link">Le Produit</a>
+      <a href="#routine" class="mobile-link">Notre Routine</a>
+      <a href="#a-propos" class="mobile-link">Notre Histoire</a>
+      <a href="#contact" class="mobile-link">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ STORE VIEW ============ -->
+<main id="view-store">
+
+  <!-- ============ PRODUCT DETAIL SECTION ============ -->
+  <section id="produit" class="max-w-7xl mx-auto px-5 sm:px-8 pt-10 sm:pt-16 pb-16">
+    <div class="grid md:grid-cols-2 gap-10 lg:gap-16">
+
+      <!-- LEFT: GALLERY -->
+      <div>
+        <div class="relative bg-gradient-to-br from-stone-50 to-stone-100 border border-[#E5E5E5] aspect-square flex items-center justify-center overflow-hidden">
+          <span class="absolute top-4 left-4 bg-[#C5A880] text-white text-[10px] tracked-sm px-3 py-1.5">EXCLUSIVITÉ WEB</span>
+          <i id="gallery-main-icon" class="fa-solid fa-spa text-[#C5A880] text-8xl sm:text-9xl opacity-80"></i>
+        </div>
+        <div class="grid grid-cols-4 gap-3 mt-3">
+          <button class="gallery-thumb ring-2 ring-black border border-[#E5E5E5] aspect-square bg-stone-50 flex items-center justify-center text-lg text-[#6B6B6B]" data-icon="fa-solid fa-spa">
+            <i class="fa-solid fa-spa"></i>
+          </button>
+          <button class="gallery-thumb ring-1 ring-transparent border border-[#E5E5E5] aspect-square bg-stone-50 flex items-center justify-center text-lg text-[#6B6B6B]" data-icon="fa-solid fa-droplet">
+            <i class="fa-solid fa-droplet"></i>
+          </button>
+          <button class="gallery-thumb ring-1 ring-transparent border border-[#E5E5E5] aspect-square bg-stone-50 flex items-center justify-center text-lg text-[#6B6B6B]" data-icon="fa-solid fa-mug-hot">
+            <i class="fa-solid fa-mug-hot"></i>
+          </button>
+          <button class="gallery-thumb ring-1 ring-transparent border border-[#E5E5E5] aspect-square bg-stone-50 flex items-center justify-center text-lg text-[#6B6B6B]" data-icon="fa-solid fa-leaf">
+            <i class="fa-solid fa-leaf"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: INFO -->
+      <div class="flex flex-col">
+        <p class="tracked-sm text-xs text-[#6B6B6B]">FLOWA — BIEN-ÊTRE NATUREL</p>
+        <h1 class="text-2xl sm:text-3xl font-medium mt-2 leading-snug">Gel Apaisant Naturel — Soulagement Menstruel</h1>
+
+        <div class="flex items-center gap-2 mt-3">
+          <div class="text-[#C5A880] text-sm">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+          </div>
+          <span class="text-sm text-[#6B6B6B]">4.7 / 5 &nbsp;·&nbsp; 6 236 avis</span>
+        </div>
+
+        <p id="product-price" class="text-xl font-medium mt-5">249 DH</p>
+
+        <!-- Format selection -->
+        <div class="mt-6">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">FORMAT</p>
+          <div class="flex flex-wrap gap-3">
+            <button class="format-btn border border-black px-5 py-3 text-sm text-left min-w-[160px]" data-format="gel" data-price="249" data-label="Gel Apaisant 50ml">
+              <span class="block font-medium">Gel Apaisant</span>
+              <span class="block text-[#6B6B6B] text-xs mt-0.5">50ml — 249 DH</span>
+            </button>
+            <button class="format-btn border border-[#E5E5E5] px-5 py-3 text-sm text-left min-w-[160px]" data-format="rollon" data-price="189" data-label="Roll-on Apaisant 10ml">
+              <span class="block font-medium">Roll-on Apaisant</span>
+              <span class="block text-[#6B6B6B] text-xs mt-0.5">10ml — 189 DH</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quantity -->
+        <div class="mt-6">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ</p>
+          <div class="inline-flex items-center border border-[#E5E5E5]">
+            <button id="btn-qty-minus-main" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Diminuer">−</button>
+            <span id="qty-main" class="w-10 h-10 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
+            <button id="btn-qty-plus-main" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Augmenter">+</button>
+          </div>
+        </div>
+
+        <!-- CTAs -->
+        <div class="mt-8 flex flex-col gap-3">
+          <button id="btn-order-main" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors">
+            COMMANDER MAINTENANT
+          </button>
+          <button id="btn-add-cart" class="w-full border border-black py-4 text-sm tracked-sm hover:bg-black hover:text-white transition-colors">
+            AJOUTER AU PANIER
+          </button>
+        </div>
+
+        <p class="text-xs text-[#6B6B6B] mt-4 flex items-center gap-2">
+          <i class="fa-solid fa-truck-fast"></i> Livraison partout au Maroc — Paiement à la livraison
+        </p>
+
+        <!-- Accordion -->
+        <div class="mt-10 border-t border-[#E5E5E5]">
+          <div class="border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="acc-desc">
+              DESCRIPTION
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="acc-desc" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed">
+              Un gel texture fraîche formulé pour apaiser naturellement les tiraillements et l'inconfort du cycle. Sa formule concentrée en actifs végétaux s'applique en massage doux sur le bas-ventre et agit dès les premières minutes, sans hormones ni parfum de synthèse.
+            </div>
+          </div>
+          <div class="border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="acc-ingr">
+              INGRÉDIENTS
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="acc-ingr" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed">
+              Extrait d'armoise, huile essentielle de sauge sclarée, camphre naturel, aloe vera bio, huile de magnésium, extrait de gattilier. Sans paraben, sans silicone, sans colorant. Non testé sur les animaux.
+            </div>
+          </div>
+          <div class="border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="acc-usage">
+              CONSEILS D'UTILISATION
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="acc-usage" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed">
+              Appliquer une noisette de produit sur le bas-ventre ou le bas du dos, matin et soir, en massant délicatement jusqu'à absorption complète. Idéal dès les premiers signes d'inconfort. Éviter le contact avec les yeux et les muqueuses.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROUTINE SECTION ============ -->
+  <section id="routine" class="bg-stone-50/60 border-y border-[#E5E5E5] py-14 sm:py-20">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-lg sm:text-xl tracked font-medium">COMPLÉTEZ VOTRE ROUTINE</h2>
+        <div class="w-10 h-[2px] bg-[#C5A880] mx-auto mt-3"></div>
+        <p class="text-sm text-[#6B6B6B] mt-3">Une sélection pensée pour accompagner votre cycle au naturel</p>
+      </div>
+
+      <div id="routine-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"></div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="a-propos" class="max-w-4xl mx-auto px-5 sm:px-8 py-16 sm:py-20 text-center">
+    <p class="text-xs tracked-sm text-[#C5A880] mb-3">NOTRE HISTOIRE</p>
+    <h2 class="text-xl sm:text-2xl font-medium leading-snug">Une approche naturelle et transparente du cycle féminin</h2>
+    <p class="text-sm text-[#6B6B6B] leading-relaxed mt-5">
+      Née à Kénitra, FLOWA formule ses produits à partir de plantes sélectionnées pour leurs vertus apaisantes.
+      Aucune promesse miracle, seulement des ingrédients naturels, dosés avec rigueur, pour accompagner chaque
+      femme avec douceur pendant son cycle.
+    </p>
+  </section>
+
+  <!-- ============ CONTACT / FOOTER ============ -->
+  <footer id="contact" class="bg-black text-white">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 py-14 grid sm:grid-cols-3 gap-10 text-sm">
+      <div>
+        <p class="text-lg tracked font-medium mb-3">FLOWA</p>
+        <p class="text-white/60 leading-relaxed">Soulagement naturel du cycle féminin. Formulé au Maroc, pensé pour vous.</p>
+      </div>
+      <div>
+        <p class="tracked-sm text-xs text-white/50 mb-3">CONTACT</p>
+        <p class="text-white/80"><i class="fa-solid fa-phone mr-2"></i>+212 6 99 43 33 19</p>
+        <p class="text-white/80 mt-2"><i class="fa-solid fa-envelope mr-2"></i>contact@flowa.ma</p>
+        <p class="text-white/80 mt-2"><i class="fa-solid fa-location-dot mr-2"></i>Sidi Taïbi, Kénitra, Maroc</p>
+      </div>
+      <div>
+        <p class="tracked-sm text-xs text-white/50 mb-3">LIVRAISON</p>
+        <p class="text-white/80">Paiement à la livraison partout au Maroc.</p>
+        <button id="link-admin" class="text-white/30 text-xs mt-6 hover:text-white/60 transition-colors">Espace Pro</button>
+      </div>
+    </div>
+    <div class="border-t border-white/10 py-5 text-center text-[11px] text-white/40">
+      © 2026 FLOWA. Tous droits réservés.
+    </div>
+  </footer>
+</main>
+
+<!-- ============ CHECKOUT MODAL ============ -->
+<div id="modal-checkout" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#E5E5E5]">
+      <p class="tracked-sm text-sm font-medium">FINALISER LA COMMANDE</p>
+      <button id="btn-close-checkout" class="text-lg text-[#6B6B6B] hover:text-black" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="px-6 py-5">
+      <div class="flex items-center justify-between bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6">
+        <div>
+          <p id="checkout-product-name" class="text-sm font-medium">—</p>
+          <p class="text-xs text-[#6B6B6B] mt-0.5">Quantité : <span id="checkout-qty-display">1</span></p>
+        </div>
+        <p id="checkout-product-price" class="text-sm font-medium">— DH</p>
+      </div>
+
+      <form id="checkout-form" class="space-y-4">
+        <div>
+          <label class="block text-xs tracked-sm text-[#6B6B6B] mb-1.5">NOM COMPLET</label>
+          <input id="input-name" type="text" required placeholder="Ex. Salma Bennani" class="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:border-black outline-none transition-colors">
+        </div>
+        <div>
+          <label class="block text-xs tracked-sm text-[#6B6B6B] mb-1.5">TÉLÉPHONE (MAROC)</label>
+          <input id="input-phone" type="tel" required placeholder="06 XX XX XX XX" class="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:border-black outline-none transition-colors">
+          <p id="phone-error" class="hidden text-[11px] text-red-600 mt-1">Veuillez saisir un numéro marocain valide (ex. 06XXXXXXXX ou +212 6XXXXXXXX).</p>
+        </div>
+        <div>
+          <label class="block text-xs tracked-sm text-[#6B6B6B] mb-1.5">VILLE</label>
+          <input id="input-city" type="text" required placeholder="Ex. Kénitra" class="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:border-black outline-none transition-colors">
+        </div>
+        <div>
+          <label class="block text-xs tracked-sm text-[#6B6B6B] mb-1.5">ADRESSE PRÉCISE</label>
+          <textarea id="input-address" required rows="2" placeholder="Immeuble, rue, quartier, point de repère..." class="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:border-black outline-none transition-colors resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <span class="text-xs tracked-sm text-[#6B6B6B]">QUANTITÉ</span>
+          <div class="inline-flex items-center border border-[#E5E5E5]">
+            <button type="button" id="btn-qty-minus-checkout" class="w-9 h-9 hover:bg-stone-50" aria-label="Diminuer">−</button>
+            <span id="qty-checkout" class="w-9 h-9 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
+            <button type="button" id="btn-qty-plus-checkout" class="w-9 h-9 hover:bg-stone-50" aria-label="Augmenter">+</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-[#E5E5E5] pt-4 mt-2">
+          <span class="text-sm tracked-sm">TOTAL</span>
+          <span id="checkout-total" class="text-lg font-medium">— DH</span>
+        </div>
+
+        <button type="submit" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors mt-2">
+          CONFIRMER LA COMMANDE
+        </button>
+        <p class="text-[11px] text-center text-[#6B6B6B]">Paiement à la livraison — aucune carte requise</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SUCCESS VIEW ============ -->
+<div id="view-success" class="hidden fixed inset-0 z-40 bg-white flex items-center justify-center p-6">
+  <div class="fade-in max-w-md w-full text-center">
+    <div class="w-16 h-16 rounded-full border border-[#C5A880] flex items-center justify-center mx-auto mb-6">
+      <i class="fa-solid fa-check text-[#C5A880] text-2xl"></i>
+    </div>
+    <p class="text-xs tracked-sm text-[#6B6B6B]">COMMANDE CONFIRMÉE</p>
+    <h2 class="text-2xl font-medium mt-2">Merci pour votre confiance</h2>
+    <p class="text-sm text-[#6B6B6B] mt-3">Notre équipe vous contactera prochainement pour confirmer la livraison.</p>
+
+    <div class="border border-[#E5E5E5] mt-8 p-5 text-left text-sm space-y-2">
+      <div class="flex justify-between"><span class="text-[#6B6B6B]">Référence</span><span id="success-ref" class="font-medium">—</span></div>
+      <div class="flex justify-between"><span class="text-[#6B6B6B]">Produit</span><span id="success-product" class="font-medium">—</span></div>
+      <div class="flex justify-between"><span class="text-[#6B6B6B]">Total</span><span id="success-total" class="font-medium">—</span></div>
+      <div class="flex justify-between"><span class="text-[#6B6B6B]">Livraison</span><span id="success-city" class="font-medium">—</span></div>
+    </div>
+
+    <button id="btn-back-shop" class="w-full bg-black text-white py-4 text-sm tracked-sm mt-8 hover:bg-[#111111]/90 transition-colors">
+      RETOUR À LA BOUTIQUE
+    </button>
+  </div>
+</div>
+
+<!-- ============ MY ORDERS MODAL ============ -->
+<div id="modal-my-orders" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="rise-in bg-white w-full sm:max-w-lg sm:border sm:border-[#E5E5E5] max-h-[85vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#E5E5E5]">
+      <p class="tracked-sm text-sm font-medium">MES COMMANDES</p>
+      <button id="btn-close-my-orders" class="text-lg text-[#6B6B6B] hover:text-black" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="my-orders-list" class="px-6 py-5 space-y-3"></div>
+    <p id="my-orders-empty" class="hidden text-center text-sm text-[#6B6B6B] py-10 px-6">Aucune commande liée à votre compte pour le moment.</p>
+    <p id="my-orders-loading" class="text-center text-sm text-[#6B6B6B] py-10 px-6">Chargement…</p>
+  </div>
+</div>
+
+<!-- ============ ADMIN DASHBOARD VIEW ============ -->
+<div id="view-admin" class="hidden min-h-screen bg-white">
+  <div class="border-b border-[#E5E5E5]">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <div>
+        <p class="text-lg tracked font-medium">FLOWA</p>
+        <p class="text-[11px] tracked-sm text-[#6B6B6B]">ESPACE PRO</p>
+      </div>
+      <button id="btn-back-store-admin" class="border border-black px-4 py-2.5 text-xs tracked-sm hover:bg-black hover:text-white transition-colors">
+        <i class="fa-solid fa-arrow-left mr-2"></i>RETOUR BOUTIQUE
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN TABS -->
+  <div class="border-b border-[#E5E5E5] bg-stone-50/60">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex gap-2">
+      <button id="tab-btn-orders" class="admin-tab-btn px-5 py-3.5 text-xs tracked-sm border-b-2 border-black -mb-px">
+        <i class="fa-solid fa-receipt mr-2"></i>COMMANDES
+      </button>
+      <button id="tab-btn-products" class="admin-tab-btn px-5 py-3.5 text-xs tracked-sm border-b-2 border-transparent text-[#6B6B6B]">
+        <i class="fa-solid fa-box-open mr-2"></i>PRODUITS
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ TAB: ORDERS ============ -->
+  <div id="admin-tab-orders" class="max-w-7xl mx-auto px-5 sm:px-8 py-8">
+    <div class="flex flex-wrap items-center gap-4 mb-6">
+      <div class="border border-[#E5E5E5] px-5 py-4">
+        <p class="text-xs tracked-sm text-[#6B6B6B]">TOTAL COMMANDES</p>
+        <p id="admin-count-total" class="text-2xl font-medium mt-1">0</p>
+      </div>
+      <div class="border border-[#E5E5E5] px-5 py-4">
+        <p class="text-xs tracked-sm text-[#6B6B6B]">EN ATTENTE</p>
+        <p id="admin-count-pending" class="text-2xl font-medium mt-1 text-[#C5A880]">0</p>
+      </div>
+      <div class="border border-[#E5E5E5] px-5 py-4">
+        <p class="text-xs tracked-sm text-[#6B6B6B]">LIVRÉES</p>
+        <p id="admin-count-delivered" class="text-2xl font-medium mt-1">0</p>
+      </div>
+    </div>
+
+    <div class="border border-[#E5E5E5] overflow-x-auto scrollbar-none">
+      <table class="w-full text-sm min-w-[980px]">
+        <thead>
+          <tr class="border-b border-[#E5E5E5] bg-stone-50 text-left text-xs tracked-sm text-[#6B6B6B]">
+            <th class="px-4 py-3">N° COMMANDE</th>
+            <th class="px-4 py-3">CLIENTE</th>
+            <th class="px-4 py-3">TÉLÉPHONE</th>
+            <th class="px-4 py-3">VILLE</th>
+            <th class="px-4 py-3">ADRESSE</th>
+            <th class="px-4 py-3">PRODUIT</th>
+            <th class="px-4 py-3">TOTAL</th>
+            <th class="px-4 py-3">STATUT</th>
+            <th class="px-4 py-3 text-center">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+      <p id="orders-empty" class="hidden text-center text-sm text-[#6B6B6B] py-14">Aucune commande pour le moment.</p>
+    </div>
+  </div>
+
+  <!-- ============ TAB: PRODUCTS ============ -->
+  <div id="admin-tab-products" class="hidden max-w-7xl mx-auto px-5 sm:px-8 py-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+
+      <!-- Add product form -->
+      <div class="lg:col-span-1">
+        <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">AJOUTER UN PRODUIT</p>
+        <form id="product-form" class="border border-[#E5E5E5] p-5 space-y-4">
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">NOM DU PRODUIT</label>
+            <input id="input-product-name" type="text" required placeholder="Ex. Huile de Massage Apaisante" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COURTE</label>
+            <input id="input-product-desc" type="text" placeholder="Ex. Détente musculaire et confort" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PRIX (DH)</label>
+            <input id="input-product-price" type="number" min="1" required placeholder="Ex. 149" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">ICÔNE</label>
+            <select id="input-product-icon" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white">
+              <option value="fa-leaf">Feuille</option>
+              <option value="fa-droplet">Goutte</option>
+              <option value="fa-mug-hot">Tisane</option>
+              <option value="fa-capsules">Gélules</option>
+              <option value="fa-fire">Chaleur</option>
+              <option value="fa-spa">Spa</option>
+              <option value="fa-heart">Cœur</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-black text-white py-3 text-xs tracked-sm hover:bg-[#111111]/90 transition-colors">
+            <i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT
+          </button>
+        </form>
+      </div>
+
+      <!-- Product list -->
+      <div class="lg:col-span-2">
+        <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">PRODUITS DE LA ROUTINE (<span id="admin-products-count">0</span>)</p>
+        <div id="admin-products-list" class="grid sm:grid-cols-2 gap-4"></div>
+        <p id="products-empty" class="hidden text-center text-sm text-[#6B6B6B] py-14 border border-[#E5E5E5]">Aucun produit pour le moment.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black text-white text-xs tracked-sm px-5 py-3">
+  AJOUTÉ AU PANIER
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- SUPABASE CONFIG ---------------- */
+  // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
+  const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+  const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_PUBLIC";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  /* ---------------- STATE ---------------- */
+  let cartCount = parseInt(localStorage.getItem('flowa_cart_count') || '0', 10);
+  let orders = [];       // toutes les commandes (vue admin)
+  let myOrders = [];     // commandes du client connecté
+  let products = [];     // chargés depuis Supabase
+
+  let currentUser = null;  // session utilisateur Supabase (ou null si invité)
+  let isAdmin = false;     // vrai si profiles.is_admin === true pour l'utilisateur connecté
+
+  let selectedFormat = { format: 'gel', price: 249, label: 'Gel Apaisant 50ml' };
+  let qtyMain = 1;
+  let qtyCheckout = 1;
+  let currentCheckoutItem = null; // { name, unitPrice }
+
+  /* ---------------- HELPERS ---------------- */
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => n.toLocaleString('fr-FR') + ' DH';
+
+  function saveCart() { localStorage.setItem('flowa_cart_count', String(cartCount)); }
+
+  function updateCartBadge() { $('cart-badge').textContent = cartCount; }
+
+  function showToast(text) {
+    const t = $('toast');
+    t.textContent = text;
+    t.classList.remove('hidden');
+    t.classList.remove('toast'); void t.offsetWidth; t.classList.add('toast');
+    setTimeout(() => t.classList.add('hidden'), 2500);
+  }
+
+  function genOrderRef() {
+    const n = Math.floor(100000 + Math.random() * 900000);
+    return 'FLW-' + n;
+  }
+
+  function validMoroccanPhone(phone) {
+    const cleaned = phone.replace(/[\s.-]/g, '');
+    return /^(?:\+212|0)[5-7][0-9]{8}$/.test(cleaned);
+  }
+
+  /* ---------------- AUTH (GOOGLE VIA SUPABASE) ---------------- */
+  $('btn-account').addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('account-dropdown').classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!$('auth-area').contains(e.target)) $('account-dropdown').classList.add('hidden');
+  });
+
+  $('btn-google-login').addEventListener('click', async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href }
+    });
+  });
+
+  $('btn-logout').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    $('account-dropdown').classList.add('hidden');
+  });
+
+  async function refreshAuthUI() {
+    const { data: { session } } = await supabase.auth.getSession();
+    currentUser = session ? session.user : null;
+
+    if (currentUser) {
+      $('account-dropdown-guest').classList.add('hidden');
+      $('account-dropdown-user').classList.remove('hidden');
+      $('account-email').textContent = currentUser.email || '';
+
+      // vérifie si ce compte est administrateur (table profiles, colonne is_admin)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+      isAdmin = !!(profile && profile.is_admin);
+      $('btn-admin-entry').classList.toggle('hidden', !isAdmin);
+    } else {
+      isAdmin = false;
+      $('account-dropdown-guest').classList.remove('hidden');
+      $('account-dropdown-user').classList.add('hidden');
+    }
+  }
+
+  supabase.auth.onAuthStateChange((_event, _session) => {
+    refreshAuthUI();
+  });
+
+  /* ---------------- MES COMMANDES (CLIENT) ---------------- */
+  $('btn-my-orders').addEventListener('click', async () => {
+    $('account-dropdown').classList.add('hidden');
+    $('modal-my-orders').classList.remove('hidden');
+    $('my-orders-loading').classList.remove('hidden');
+    $('my-orders-empty').classList.add('hidden');
+    $('my-orders-list').innerHTML = '';
+
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    $('my-orders-loading').classList.add('hidden');
+    myOrders = (!error && data) ? data : [];
+
+    if (myOrders.length === 0) {
+      $('my-orders-empty').classList.remove('hidden');
+      return;
+    }
+    $('my-orders-list').innerHTML = myOrders.map(o => `
+      <div class="border border-[#E5E5E5] p-4">
+        <div class="flex justify-between text-sm">
+          <span class="font-medium">${escapeHtml(o.ref)}</span>
+          <span class="text-[#6B6B6B]">${new Date(o.created_at).toLocaleDateString('fr-FR')}</span>
+        </div>
+        <p class="text-sm mt-1">${escapeHtml(o.product)} × ${o.qty}</p>
+        <div class="flex justify-between items-center mt-2">
+          <span class="text-xs px-2 py-1 border border-[#E5E5E5] tracked-sm">${escapeHtml(o.status)}</span>
+          <span class="font-medium">${money(o.total)}</span>
+        </div>
+      </div>
+    `).join('');
+  });
+  $('btn-close-my-orders').addEventListener('click', () => $('modal-my-orders').classList.add('hidden'));
+  $('modal-my-orders').addEventListener('click', (e) => { if (e.target === $('modal-my-orders')) $('modal-my-orders').classList.add('hidden'); });
+
+  /* ---------------- MOBILE MENU ---------------- */
+  $('btn-mobile-menu').addEventListener('click', () => {
+    $('mobile-menu-panel').classList.toggle('hidden');
+  });
+  document.querySelectorAll('.mobile-link').forEach(a => {
+    a.addEventListener('click', () => $('mobile-menu-panel').classList.add('hidden'));
+  });
+
+  /* ---------------- GALLERY ---------------- */
+  document.querySelectorAll('.gallery-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('ring-black', 'ring-2'));
+      document.querySelectorAll('.gallery-thumb').forEach(t => { t.classList.add('ring-1', 'ring-transparent'); });
+      thumb.classList.remove('ring-1', 'ring-transparent');
+      thumb.classList.add('ring-2', 'ring-black');
+      const iconClass = thumb.getAttribute('data-icon');
+      $('gallery-main-icon').className = iconClass + ' text-[#C5A880] text-8xl sm:text-9xl opacity-80';
+    });
+  });
+
+  /* ---------------- FORMAT SELECTION ---------------- */
+  function refreshMainPrice() {
+    $('product-price').textContent = money(selectedFormat.price * qtyMain);
+  }
+
+  document.querySelectorAll('.format-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('border-black'));
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.add('border-[#E5E5E5]'));
+      btn.classList.remove('border-[#E5E5E5]');
+      btn.classList.add('border-black');
+      selectedFormat = {
+        format: btn.getAttribute('data-format'),
+        price: parseInt(btn.getAttribute('data-price'), 10),
+        label: btn.getAttribute('data-label'),
+      };
+      refreshMainPrice();
+    });
+  });
+
+  /* ---------------- QUANTITY (main) ---------------- */
+  $('btn-qty-plus-main').addEventListener('click', () => {
+    qtyMain = Math.min(qtyMain + 1, 10);
+    $('qty-main').textContent = qtyMain;
+    refreshMainPrice();
+  });
+  $('btn-qty-minus-main').addEventListener('click', () => {
+    qtyMain = Math.max(qtyMain - 1, 1);
+    $('qty-main').textContent = qtyMain;
+    refreshMainPrice();
+  });
+
+  /* ---------------- ACCORDION ---------------- */
+  document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const target = $(header.getAttribute('data-target'));
+      const chevron = header.querySelector('.chevron');
+      target.classList.toggle('hidden');
+      chevron.classList.toggle('rotate-180');
+    });
+  });
+
+  /* ---------------- ADD TO CART ---------------- */
+  $('btn-add-cart').addEventListener('click', () => {
+    cartCount += qtyMain;
+    saveCart();
+    updateCartBadge();
+    showToast('AJOUTÉ AU PANIER');
+  });
+
+  /* ---------------- ROUTINE GRID ---------------- */
+  function renderRoutineGrid() {
+    const grid = $('routine-grid');
+
+    if (products.length === 0) {
+      grid.innerHTML = `<p class="col-span-full text-center text-sm text-[#6B6B6B] py-10">Aucun produit disponible pour le moment.</p>`;
+      return;
+    }
+
+    grid.innerHTML = products.map(p => `
+      <div class="bg-white border border-[#E5E5E5] p-4 flex flex-col">
+        <div class="aspect-square bg-stone-50 border border-[#E5E5E5] flex items-center justify-center mb-3">
+          <i class="fa-solid ${p.icon} text-3xl text-[#C5A880]"></i>
+        </div>
+        <p class="text-sm font-medium leading-snug">${escapeHtml(p.name)}</p>
+        <p class="text-[11px] text-[#6B6B6B] mt-1 leading-snug flex-1">${escapeHtml(p.desc || '')}</p>
+        <p class="text-sm font-medium mt-3">${money(p.price)}</p>
+        <button class="btn-order-routine mt-3 w-full border border-black py-2.5 text-[11px] tracked-sm hover:bg-black hover:text-white transition-colors" data-id="${p.id}">
+          COMMANDER
+        </button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.btn-order-routine').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const product = products.find(p => p.id === btn.getAttribute('data-id'));
+        if (product) openCheckout(product.name, product.price);
+      });
+    });
+  }
+
+  async function loadProducts() {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: true });
+    products = (!error && data) ? data : [];
+    renderRoutineGrid();
+    if (!$('view-admin').classList.contains('hidden')) renderProductsAdmin();
+  }
+  loadProducts();
+
+  /* ---------------- CHECKOUT MODAL ---------------- */
+  function openCheckout(name, unitPrice) {
+    currentCheckoutItem = { name, unitPrice };
+    qtyCheckout = 1;
+    $('qty-checkout').textContent = qtyCheckout;
+    $('checkout-qty-display').textContent = qtyCheckout;
+    $('checkout-product-name').textContent = name;
+    $('checkout-product-price').textContent = money(unitPrice);
+    refreshCheckoutTotal();
+    $('checkout-form').reset();
+    $('phone-error').classList.add('hidden');
+    $('modal-checkout').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCheckout() {
+    $('modal-checkout').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function refreshCheckoutTotal() {
+    if (!currentCheckoutItem) return;
+    $('checkout-total').textContent = money(currentCheckoutItem.unitPrice * qtyCheckout);
+    $('checkout-qty-display').textContent = qtyCheckout;
+  }
+
+  $('btn-order-main').addEventListener('click', () => {
+    openCheckout(selectedFormat.label, selectedFormat.price);
+    qtyCheckout = qtyMain;
+    $('qty-checkout').textContent = qtyCheckout;
+    refreshCheckoutTotal();
+  });
+
+  $('btn-close-checkout').addEventListener('click', closeCheckout);
+  $('modal-checkout').addEventListener('click', (e) => { if (e.target === $('modal-checkout')) closeCheckout(); });
+
+  $('btn-qty-plus-checkout').addEventListener('click', () => {
+    qtyCheckout = Math.min(qtyCheckout + 1, 10);
+    $('qty-checkout').textContent = qtyCheckout;
+    refreshCheckoutTotal();
+  });
+  $('btn-qty-minus-checkout').addEventListener('click', () => {
+    qtyCheckout = Math.max(qtyCheckout - 1, 1);
+    $('qty-checkout').textContent = qtyCheckout;
+    refreshCheckoutTotal();
+  });
+
+  /* ---------------- SUBMIT ORDER ---------------- */
+  $('checkout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = $('input-name').value.trim();
+    const phone = $('input-phone').value.trim();
+    const city = $('input-city').value.trim();
+    const address = $('input-address').value.trim();
+
+    if (!validMoroccanPhone(phone)) {
+      $('phone-error').classList.remove('hidden');
+      $('input-phone').focus();
+      return;
+    }
+    $('phone-error').classList.add('hidden');
+
+    if (!name || !city || !address) return;
+
+    const total = currentCheckoutItem.unitPrice * qtyCheckout;
+    const submitBtn = $('checkout-form').querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'ENVOI EN COURS…';
+
+    const order = {
+      ref: genOrderRef(),
+      user_id: currentUser ? currentUser.id : null, // lié au compte Google si connecté, sinon commande "invité"
+      name, phone, city, address,
+      product: currentCheckoutItem.name,
+      qty: qtyCheckout,
+      total,
+      status: 'En attente',
+    };
+
+    const { data, error } = await supabase.from('orders').insert(order).select().single();
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'CONFIRMER LA COMMANDE';
+
+    if (error) {
+      alert("Une erreur est survenue lors de l'envoi de votre commande. Veuillez réessayer.");
+      console.error(error);
+      return;
+    }
+
+    closeCheckout();
+    showSuccess(data);
+  });
+
+  /* ---------------- SUCCESS VIEW ---------------- */
+  function showSuccess(order) {
+    $('success-ref').textContent = order.ref;
+    $('success-product').textContent = order.product + ' × ' + order.qty;
+    $('success-total').textContent = money(order.total);
+    $('success-city').textContent = order.city;
+    $('view-success').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    window.scrollTo(0, 0);
+  }
+
+  $('btn-back-shop').addEventListener('click', () => {
+    $('view-success').classList.add('hidden');
+    document.body.style.overflow = '';
+  });
+
+  /* ---------------- ADMIN ACCESS (GOOGLE + is_admin) ---------------- */
+  async function requestAdminAccess() {
+    if (!currentUser) {
+      $('account-dropdown').classList.remove('hidden');
+      alert("Veuillez d'abord vous connecter avec le compte Google administrateur.");
+      return;
+    }
+    if (!isAdmin) {
+      alert("Ce compte Google n'a pas les droits administrateur.");
+      return;
+    }
+    openAdmin();
+  }
+  $('link-admin').addEventListener('click', requestAdminAccess);
+  $('btn-admin-entry').addEventListener('click', () => {
+    $('account-dropdown').classList.add('hidden');
+    requestAdminAccess();
+  });
+
+  /* ---------------- ADMIN DASHBOARD ---------------- */
+  function openAdmin() {
+    $('view-store').classList.add('hidden');
+    document.querySelector('header').classList.add('hidden');
+    $('view-admin').classList.remove('hidden');
+    switchAdminTab('orders');
+    loadOrdersAdmin();
+    renderProductsAdmin();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------------- ADMIN TABS ---------------- */
+  function switchAdminTab(tab) {
+    const isOrders = tab === 'orders';
+    $('admin-tab-orders').classList.toggle('hidden', !isOrders);
+    $('admin-tab-products').classList.toggle('hidden', isOrders);
+
+    $('tab-btn-orders').classList.toggle('border-black', isOrders);
+    $('tab-btn-orders').classList.toggle('border-transparent', !isOrders);
+    $('tab-btn-orders').classList.toggle('text-[#6B6B6B]', !isOrders);
+
+    $('tab-btn-products').classList.toggle('border-black', !isOrders);
+    $('tab-btn-products').classList.toggle('border-transparent', isOrders);
+    $('tab-btn-products').classList.toggle('text-[#6B6B6B]', isOrders);
+  }
+  $('tab-btn-orders').addEventListener('click', () => switchAdminTab('orders'));
+  $('tab-btn-products').addEventListener('click', () => switchAdminTab('products'));
+
+  /* ---------------- ADMIN: PRODUCTS ---------------- */
+  function renderProductsAdmin() {
+    const list = $('admin-products-list');
+    const empty = $('products-empty');
+    $('admin-products-count').textContent = products.length;
+
+    if (products.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    list.innerHTML = products.map(p => `
+      <div class="border border-[#E5E5E5] p-4 flex items-center gap-4">
+        <div class="w-14 h-14 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center">
+          <i class="fa-solid ${p.icon} text-lg text-[#C5A880]"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${escapeHtml(p.name)}</p>
+          <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.desc || '')}</p>
+          <p class="text-sm font-medium mt-1">${money(p.price)}</p>
+        </div>
+        <button data-id="${p.id}" class="btn-delete-product text-[#6B6B6B] hover:text-red-600 transition-colors shrink-0" aria-label="Supprimer le produit">
+          <i class="fa-regular fa-trash-can"></i>
+        </button>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.btn-delete-product').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Supprimer définitivement ce produit de la boutique ?')) return;
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) { alert("Erreur lors de la suppression."); console.error(error); return; }
+        await loadProducts();
+      });
+    });
+  }
+
+  $('product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = $('input-product-name').value.trim();
+    const desc = $('input-product-desc').value.trim();
+    const price = parseInt($('input-product-price').value, 10);
+    const icon = $('input-product-icon').value;
+
+    if (!name || !price || price <= 0) return;
+
+    const submitBtn = $('product-form').querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    const { error } = await supabase.from('products').insert({ name, price, icon, desc });
+
+    submitBtn.disabled = false;
+    if (error) { alert("Erreur lors de l'ajout du produit."); console.error(error); return; }
+
+    await loadProducts();
+    $('product-form').reset();
+    $('input-product-name').focus();
+  });
+
+  $('btn-back-store-admin').addEventListener('click', () => {
+    $('view-admin').classList.add('hidden');
+    document.querySelector('header').classList.remove('hidden');
+    $('view-store').classList.remove('hidden');
+  });
+
+  async function loadOrdersAdmin() {
+    const tbody = $('orders-tbody');
+    tbody.innerHTML = '';
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) { console.error(error); return; }
+    orders = data || [];
+    renderOrdersTable();
+  }
+
+  function renderOrdersTable() {
+    const tbody = $('orders-tbody');
+    const empty = $('orders-empty');
+
+    $('admin-count-total').textContent = orders.length;
+    $('admin-count-pending').textContent = orders.filter(o => o.status === 'En attente').length;
+    $('admin-count-delivered').textContent = orders.filter(o => o.status === 'Livrée').length;
+
+    if (orders.length === 0) {
+      tbody.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = orders.map(o => `
+      <tr class="border-b border-[#E5E5E5] hover:bg-stone-50/60 align-top">
+        <td class="px-4 py-3">
+          <p class="font-medium">${escapeHtml(o.ref)}</p>
+          <p class="text-[11px] text-[#6B6B6B]">${new Date(o.created_at).toLocaleDateString('fr-FR')}</p>
+          ${o.user_id ? '<p class="text-[10px] text-[#C5A880] mt-0.5"><i class="fa-brands fa-google mr-1"></i>Compte lié</p>' : '<p class="text-[10px] text-[#6B6B6B] mt-0.5">Invité</p>'}
+        </td>
+        <td class="px-4 py-3">${escapeHtml(o.name)}</td>
+        <td class="px-4 py-3">
+          <a href="tel:${escapeHtml(o.phone)}" class="text-[#C5A880] hover:underline"><i class="fa-solid fa-phone mr-1.5"></i>${escapeHtml(o.phone)}</a>
+        </td>
+        <td class="px-4 py-3">${escapeHtml(o.city)}</td>
+        <td class="px-4 py-3 max-w-[200px]"><span class="text-[#6B6B6B]">${escapeHtml(o.address)}</span></td>
+        <td class="px-4 py-3">${escapeHtml(o.product)} <span class="text-[#6B6B6B]">×${o.qty}</span></td>
+        <td class="px-4 py-3 font-medium">${money(o.total)}</td>
+        <td class="px-4 py-3">
+          <select data-id="${o.id}" class="status-select border border-[#E5E5E5] px-2 py-1.5 text-xs focus:border-black outline-none">
+            <option value="En attente" ${o.status === 'En attente' ? 'selected' : ''}>En attente</option>
+            <option value="Livrée" ${o.status === 'Livrée' ? 'selected' : ''}>Livrée</option>
+          </select>
+        </td>
+        <td class="px-4 py-3 text-center">
+          <button data-id="${o.id}" class="btn-delete-order text-[#6B6B6B] hover:text-red-600 transition-colors" aria-label="Supprimer">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const id = sel.getAttribute('data-id');
+        const { error } = await supabase.from('orders').update({ status: sel.value }).eq('id', id);
+        if (error) { alert('Erreur lors de la mise à jour.'); console.error(error); return; }
+        const order = orders.find(o => o.id === id);
+        if (order) order.status = sel.value;
+        renderOrdersTable();
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-order').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Supprimer définitivement cette commande ?')) return;
+        const { error } = await supabase.from('orders').delete().eq('id', id);
+        if (error) { alert('Erreur lors de la suppression.'); console.error(error); return; }
+        orders = orders.filter(o => o.id !== id);
+        renderOrdersTable();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  /* ---------------- INIT ---------------- */
+  updateCartBadge();
+  refreshAuthUI();
+})();
+</script>
+</body>
+</html>
