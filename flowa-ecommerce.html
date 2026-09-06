@@ -255,6 +255,52 @@
   </footer>
 </main>
 
+<!-- ============ PRODUCT DETAIL VIEW ============ -->
+<div id="view-product-detail" class="hidden bg-white">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 py-6">
+    <button id="btn-back-store-detail" class="text-xs tracked-sm text-[#6B6B6B] hover:text-black transition-colors">
+      <i class="fa-solid fa-arrow-left mr-2"></i>RETOUR À LA BOUTIQUE
+    </button>
+  </div>
+  <section class="max-w-7xl mx-auto px-5 sm:px-8 pb-16">
+    <div class="grid md:grid-cols-2 gap-10 lg:gap-16">
+      <div>
+        <div id="detail-image-wrap" class="bg-gradient-to-br from-stone-50 to-stone-100 border border-[#E5E5E5] aspect-square flex items-center justify-center overflow-hidden"></div>
+      </div>
+      <div class="flex flex-col">
+        <p class="tracked-sm text-xs text-[#6B6B6B]">FLOWA — BIEN-ÊTRE NATUREL</p>
+        <h1 id="detail-name" class="text-2xl sm:text-3xl font-medium mt-2 leading-snug">—</h1>
+        <p id="detail-desc" class="text-sm text-[#6B6B6B] mt-4 leading-relaxed">—</p>
+        <p id="detail-price" class="text-xl font-medium mt-5">—</p>
+
+        <div id="detail-variants-wrap" class="hidden mt-6">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">CHOISISSEZ UNE OPTION</p>
+          <div id="detail-variants" class="flex flex-wrap gap-3"></div>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ</p>
+          <div class="inline-flex items-center border border-[#E5E5E5]">
+            <button id="btn-qty-minus-detail" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Diminuer">−</button>
+            <span id="qty-detail" class="w-10 h-10 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
+            <button id="btn-qty-plus-detail" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Augmenter">+</button>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <button id="btn-order-detail" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors">
+            COMMANDER MAINTENANT
+          </button>
+        </div>
+
+        <p class="text-xs text-[#6B6B6B] mt-4 flex items-center gap-2">
+          <i class="fa-solid fa-truck-fast"></i> Livraison partout au Maroc — Paiement à la livraison
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- ============ CHECKOUT MODAL ============ -->
 <div id="modal-checkout" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
   <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto">
@@ -431,20 +477,21 @@
             <input id="input-product-desc" type="text" placeholder="Ex. Détente musculaire et confort" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
           </div>
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PRIX (DH)</label>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PRIX DE BASE (DH)</label>
             <input id="input-product-price" type="number" min="1" required placeholder="Ex. 149" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+            <p class="text-[10px] text-[#6B6B6B] mt-1">Utilisé seulement si vous n'ajoutez aucune option ci-dessous.</p>
           </div>
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">ICÔNE</label>
-            <select id="input-product-icon" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white">
-              <option value="fa-leaf">Feuille</option>
-              <option value="fa-droplet">Goutte</option>
-              <option value="fa-mug-hot">Tisane</option>
-              <option value="fa-capsules">Gélules</option>
-              <option value="fa-fire">Chaleur</option>
-              <option value="fa-spa">Spa</option>
-              <option value="fa-heart">Cœur</option>
-            </select>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">OPTIONS (TAILLE / CAPACITÉ) — FACULTATIF</label>
+            <div id="variant-rows" class="space-y-2"></div>
+            <button type="button" id="btn-add-variant-row" class="mt-2 text-xs text-[#C5A880] hover:underline">
+              <i class="fa-solid fa-plus mr-1"></i>Ajouter une option (ex. Petit / Grand, 50ml / 100ml)
+            </button>
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTO DU PRODUIT</label>
+            <input id="input-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+            <img id="product-image-preview" class="hidden mt-2 w-24 h-24 object-cover border border-[#E5E5E5]" alt="Aperçu">
           </div>
           <button type="submit" class="w-full bg-black text-white py-3 text-xs tracked-sm hover:bg-[#111111]/90 transition-colors">
             <i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT
@@ -473,8 +520,8 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
-  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
+  const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+  const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_PUBLIC";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ---------------- STATE ---------------- */
@@ -683,24 +730,31 @@
       return;
     }
 
-    grid.innerHTML = products.map(p => `
-      <div class="bg-white border border-[#E5E5E5] p-4 flex flex-col">
-        <div class="aspect-square bg-stone-50 border border-[#E5E5E5] flex items-center justify-center mb-3">
-          <i class="fa-solid ${p.icon} text-3xl text-[#C5A880]"></i>
+    grid.innerHTML = products.map(p => {
+      const prices = (p.variants && p.variants.length) ? p.variants.map(v => v.price) : [p.price];
+      const min = Math.min(...prices), max = Math.max(...prices);
+      const priceLabel = min === max ? money(min) : `Dès ${money(min)}`;
+      return `
+      <div class="product-card bg-white border border-[#E5E5E5] p-4 flex flex-col cursor-pointer hover:border-black transition-colors" data-id="${p.id}">
+        <div class="aspect-square bg-stone-50 border border-[#E5E5E5] flex items-center justify-center mb-3 overflow-hidden">
+          ${p.image_url
+            ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
+            : `<i class="fa-regular fa-image text-3xl text-[#C5A880]"></i>`}
         </div>
         <p class="text-sm font-medium leading-snug">${escapeHtml(p.name)}</p>
         <p class="text-[11px] text-[#6B6B6B] mt-1 leading-snug flex-1">${escapeHtml(p.description || '')}</p>
-        <p class="text-sm font-medium mt-3">${money(p.price)}</p>
+        <p class="text-sm font-medium mt-3">${priceLabel}</p>
         <button class="btn-order-routine mt-3 w-full border border-black py-2.5 text-[11px] tracked-sm hover:bg-black hover:text-white transition-colors" data-id="${p.id}">
-          COMMANDER
+          VOIR LE PRODUIT
         </button>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
-    document.querySelectorAll('.btn-order-routine').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const product = products.find(p => p.id === btn.getAttribute('data-id'));
-        if (product) openCheckout(product.name, product.price);
+    document.querySelectorAll('.product-card, .btn-order-routine').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openProductDetail(el.getAttribute('data-id'));
       });
     });
   }
@@ -708,13 +762,88 @@
   async function loadProducts() {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, product_variants(*)')
       .order('created_at', { ascending: true });
-    products = (!error && data) ? data : [];
+    products = (!error && data) ? data.map(p => ({ ...p, variants: (p.product_variants || []).sort((a, b) => a.price - b.price) })) : [];
     renderRoutineGrid();
     if (!$('view-admin').classList.contains('hidden')) renderProductsAdmin();
   }
   loadProducts();
+
+  /* ---------------- PRODUCT DETAIL VIEW ---------------- */
+  let detailProduct = null;
+  let detailVariant = null; // { id, label, price } ou null si pas d'options
+  let qtyDetail = 1;
+
+  function openProductDetail(id) {
+    const p = products.find(pr => pr.id === id);
+    if (!p) return;
+    detailProduct = p;
+    qtyDetail = 1;
+    $('qty-detail').textContent = qtyDetail;
+
+    $('detail-name').textContent = p.name;
+    $('detail-desc').textContent = p.description || '';
+    $('detail-image-wrap').innerHTML = p.image_url
+      ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
+      : `<i class="fa-regular fa-image text-8xl sm:text-9xl text-[#C5A880] opacity-80"></i>`;
+
+    if (p.variants && p.variants.length) {
+      detailVariant = p.variants[0];
+      $('detail-variants-wrap').classList.remove('hidden');
+      $('detail-variants').innerHTML = p.variants.map((v, i) => `
+        <button class="detail-variant-btn border ${i === 0 ? 'border-black' : 'border-[#E5E5E5]'} px-5 py-3 text-sm text-left min-w-[140px]" data-id="${v.id}">
+          <span class="block font-medium">${escapeHtml(v.label)}</span>
+          <span class="block text-[#6B6B6B] text-xs mt-0.5">${money(v.price)}</span>
+        </button>
+      `).join('');
+      document.querySelectorAll('.detail-variant-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          detailVariant = p.variants.find(v => v.id === btn.getAttribute('data-id'));
+          document.querySelectorAll('.detail-variant-btn').forEach(b => b.classList.remove('border-black'));
+          document.querySelectorAll('.detail-variant-btn').forEach(b => b.classList.add('border-[#E5E5E5]'));
+          btn.classList.remove('border-[#E5E5E5]');
+          btn.classList.add('border-black');
+          $('detail-price').textContent = money(detailVariant.price);
+        });
+      });
+      $('detail-price').textContent = money(detailVariant.price);
+    } else {
+      detailVariant = null;
+      $('detail-variants-wrap').classList.add('hidden');
+      $('detail-variants').innerHTML = '';
+      $('detail-price').textContent = money(p.price);
+    }
+
+    $('view-store').classList.add('hidden');
+    $('view-product-detail').classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+
+  $('btn-back-store-detail').addEventListener('click', () => {
+    $('view-product-detail').classList.add('hidden');
+    $('view-store').classList.remove('hidden');
+  });
+
+  $('btn-qty-minus-detail').addEventListener('click', () => {
+    qtyDetail = Math.max(qtyDetail - 1, 1);
+    $('qty-detail').textContent = qtyDetail;
+  });
+  $('btn-qty-plus-detail').addEventListener('click', () => {
+    qtyDetail = Math.min(qtyDetail + 1, 10);
+    $('qty-detail').textContent = qtyDetail;
+  });
+
+  $('btn-order-detail').addEventListener('click', () => {
+    if (!detailProduct) return;
+    const unitPrice = detailVariant ? detailVariant.price : detailProduct.price;
+    const label = detailVariant ? `${detailProduct.name} — ${detailVariant.label}` : detailProduct.name;
+    openCheckout(label, unitPrice);
+    qtyCheckout = qtyDetail;
+    $('qty-checkout').textContent = qtyCheckout;
+    $('checkout-qty-display').textContent = qtyCheckout;
+    $('checkout-total').textContent = money(unitPrice * qtyCheckout);
+  });
 
   /* ---------------- CHECKOUT MODAL ---------------- */
   function openCheckout(name, unitPrice) {
@@ -849,6 +978,7 @@
   /* ---------------- ADMIN DASHBOARD ---------------- */
   function openAdmin() {
     $('view-store').classList.add('hidden');
+    $('view-product-detail').classList.add('hidden');
     document.querySelector('header').classList.add('hidden');
     $('view-admin').classList.remove('hidden');
     switchAdminTab('orders');
@@ -888,51 +1018,168 @@
     empty.classList.add('hidden');
 
     list.innerHTML = products.map(p => `
-      <div class="border border-[#E5E5E5] p-4 flex items-center gap-4">
-        <div class="w-14 h-14 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center">
-          <i class="fa-solid ${p.icon} text-lg text-[#C5A880]"></i>
+      <div class="border border-[#E5E5E5] p-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center overflow-hidden">
+            ${p.image_url
+              ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
+              : `<i class="fa-regular fa-image text-lg text-[#C5A880]"></i>`}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate">${escapeHtml(p.name)}</p>
+            <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.description || '')}</p>
+            <p class="text-sm font-medium mt-1">${p.variants && p.variants.length ? 'Options ci-dessous' : money(p.price)}</p>
+          </div>
+          <button data-id="${p.id}" class="btn-delete-product text-[#6B6B6B] hover:text-red-600 transition-colors shrink-0" aria-label="Supprimer le produit">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">${escapeHtml(p.name)}</p>
-          <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.description || '')}</p>
-          <p class="text-sm font-medium mt-1">${money(p.price)}</p>
+        <div class="mt-3 pt-3 border-t border-[#E5E5E5]">
+          <div class="flex flex-wrap gap-1.5" data-variants-for="${p.id}">
+            ${(p.variants || []).map(v => `
+              <span class="variant-chip inline-flex items-center gap-1.5 border border-[#E5E5E5] text-[11px] px-2 py-1" data-variant-id="${v.id}">
+                ${escapeHtml(v.label)} — ${money(v.price)}
+                <button class="btn-delete-variant text-[#6B6B6B] hover:text-red-600" data-variant-id="${v.id}" aria-label="Supprimer l'option"><i class="fa-solid fa-xmark"></i></button>
+              </span>
+            `).join('')}
+          </div>
+          <button class="btn-add-variant-existing mt-2 text-[11px] text-[#C5A880] hover:underline" data-product-id="${p.id}">
+            <i class="fa-solid fa-plus mr-1"></i>Ajouter une option
+          </button>
         </div>
-        <button data-id="${p.id}" class="btn-delete-product text-[#6B6B6B] hover:text-red-600 transition-colors shrink-0" aria-label="Supprimer le produit">
-          <i class="fa-regular fa-trash-can"></i>
-        </button>
       </div>
     `).join('');
+
+    document.querySelectorAll('.btn-delete-variant').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cette option ?')) return;
+        const { error } = await supabase.from('product_variants').delete().eq('id', btn.getAttribute('data-variant-id'));
+        if (error) { alert("Erreur lors de la suppression de l'option."); console.error(error); return; }
+        await loadProducts();
+      });
+    });
+
+    document.querySelectorAll('.btn-add-variant-existing').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const label = prompt("Nom de l'option (ex. Grand, 100ml) :");
+        if (!label || !label.trim()) return;
+        const priceStr = prompt('Prix de cette option (DH) :');
+        const price = parseInt(priceStr, 10);
+        if (!price || price <= 0) { alert('Prix invalide.'); return; }
+        const { error } = await supabase.from('product_variants').insert({
+          product_id: btn.getAttribute('data-product-id'),
+          label: label.trim(),
+          price,
+        });
+        if (error) { alert("Erreur lors de l'ajout de l'option."); console.error(error); return; }
+        await loadProducts();
+      });
+    });
 
     document.querySelectorAll('.btn-delete-product').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
+        const prod = products.find(p => p.id === id);
         if (!confirm('Supprimer définitivement ce produit de la boutique ?')) return;
         const { error } = await supabase.from('products').delete().eq('id', id);
         if (error) { alert("Erreur lors de la suppression."); console.error(error); return; }
+        if (prod && prod.image_url) {
+          const idx = prod.image_url.indexOf('/products/');
+          if (idx !== -1) {
+            const path = prod.image_url.slice(idx + '/products/'.length);
+            supabase.storage.from('products').remove([path]).catch(() => {});
+          }
+        }
         await loadProducts();
       });
     });
+  }
+
+  $('input-product-image').addEventListener('change', () => {
+    const file = $('input-product-image').files[0];
+    const preview = $('product-image-preview');
+    if (!file) { preview.classList.add('hidden'); return; }
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove('hidden');
+  });
+
+  /* ---------------- VARIANT ROWS BUILDER (form d'ajout) ---------------- */
+  function addVariantRow() {
+    const row = document.createElement('div');
+    row.className = 'variant-row flex gap-2 items-center';
+    row.innerHTML = `
+      <input type="text" placeholder="Ex. Grand" class="variant-label flex-1 border border-[#E5E5E5] px-3 py-2 text-sm focus:border-black outline-none">
+      <input type="number" min="1" placeholder="Prix DH" class="variant-price w-24 border border-[#E5E5E5] px-3 py-2 text-sm focus:border-black outline-none">
+      <button type="button" class="btn-remove-variant-row text-[#6B6B6B] hover:text-red-600 shrink-0" aria-label="Retirer"><i class="fa-solid fa-xmark"></i></button>
+    `;
+    row.querySelector('.btn-remove-variant-row').addEventListener('click', () => row.remove());
+    $('variant-rows').appendChild(row);
+  }
+  $('btn-add-variant-row').addEventListener('click', addVariantRow);
+
+  function collectVariantRows() {
+    return Array.from(document.querySelectorAll('#variant-rows .variant-row')).map(row => {
+      const label = row.querySelector('.variant-label').value.trim();
+      const price = parseInt(row.querySelector('.variant-price').value, 10);
+      return { label, price };
+    }).filter(v => v.label && v.price > 0);
   }
 
   $('product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = $('input-product-name').value.trim();
     const description = $('input-product-desc').value.trim();
-    const price = parseInt($('input-product-price').value, 10);
-    const icon = $('input-product-icon').value;
+    const basePrice = parseInt($('input-product-price').value, 10);
+    const file = $('input-product-image').files[0];
+    const variantRows = collectVariantRows();
 
-    if (!name || !price || price <= 0) return;
+    if (!name || !basePrice || basePrice <= 0) return;
 
     const submitBtn = $('product-form').querySelector('button[type="submit"]');
     submitBtn.disabled = true;
+    submitBtn.textContent = 'AJOUT EN COURS…';
 
-    const { error } = await supabase.from('products').insert({ name, price, icon, description });
+    let image_url = null;
+    if (file) {
+      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabase.storage.from('products').upload(path, file);
+      if (uploadError) {
+        alert("Erreur lors de l'envoi de l'image.");
+        console.error(uploadError);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT';
+        return;
+      }
+      image_url = supabase.storage.from('products').getPublicUrl(path).data.publicUrl;
+    }
+
+    // إذا كاينة خيارات، السعر الأساسي كيبقى أصغر سعر منهم (للعرض فقط فبطاقة المنتج)
+    const price = variantRows.length ? Math.min(...variantRows.map(v => v.price)) : basePrice;
+
+    const { data: newProduct, error } = await supabase.from('products').insert({ name, price, description, image_url }).select().single();
+
+    if (error) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT';
+      alert("Erreur lors de l'ajout du produit.");
+      console.error(error);
+      return;
+    }
+
+    if (variantRows.length) {
+      const { error: variantsError } = await supabase.from('product_variants').insert(
+        variantRows.map(v => ({ product_id: newProduct.id, label: v.label, price: v.price }))
+      );
+      if (variantsError) { alert("Le produit a été ajouté mais une erreur est survenue avec les options."); console.error(variantsError); }
+    }
 
     submitBtn.disabled = false;
-    if (error) { alert("Erreur lors de l'ajout du produit."); console.error(error); return; }
+    submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT';
 
     await loadProducts();
     $('product-form').reset();
+    $('product-image-preview').classList.add('hidden');
+    $('variant-rows').innerHTML = '';
     $('input-product-name').focus();
   });
 
