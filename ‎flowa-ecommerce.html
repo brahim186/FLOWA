@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FLOWA — Soulagement Naturel</title>
+<title>Calm and bloom — Soulagement Naturel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -42,7 +42,7 @@
       <i class="fa-solid fa-bars"></i>
     </button>
 
-    <a href="#" class="text-xl sm:text-2xl font-semibold tracked select-none">FLOWA</a>
+    <a href="#" class="text-xl sm:text-2xl font-semibold tracked select-none">Calm and bloom</a>
 
     <nav class="hidden md:flex items-center gap-10 text-xs tracked-sm">
       <a href="#routine" class="hover:text-[#C5A880] transition-colors">Nos Produits</a>
@@ -135,7 +135,7 @@
 
       <!-- RIGHT: INFO -->
       <div class="flex flex-col">
-        <p class="tracked-sm text-xs text-[#6B6B6B]">FLOWA — BIEN-ÊTRE NATUREL</p>
+        <p class="tracked-sm text-xs text-[#6B6B6B]">Calm and bloom — BIEN-ÊTRE NATUREL</p>
         <h1 class="text-2xl sm:text-3xl font-medium mt-2 leading-snug">Gel Apaisant Naturel — Soulagement Menstruel</h1>
 
         <div class="flex items-center gap-2 mt-3">
@@ -234,7 +234,7 @@
         <div id="detail-image-wrap" class="bg-gradient-to-br from-stone-50 to-stone-100 border border-[#E5E5E5] aspect-square flex items-center justify-center overflow-hidden"></div>
       </div>
       <div class="flex flex-col">
-        <p class="tracked-sm text-xs text-[#6B6B6B]">FLOWA — BIEN-ÊTRE NATUREL</p>
+        <p class="tracked-sm text-xs text-[#6B6B6B]">Calm and bloom — BIEN-ÊTRE NATUREL</p>
         <h1 id="detail-name" class="text-2xl sm:text-3xl font-medium mt-2 leading-snug">—</h1>
         <p id="detail-desc" class="text-sm text-[#6B6B6B] mt-4 leading-relaxed">—</p>
         <p id="detail-price" class="text-xl font-medium mt-5">—</p>
@@ -316,7 +316,7 @@
     <p class="text-xs tracked-sm text-[#C5A880] mb-3">NOTRE HISTOIRE</p>
     <h2 class="text-xl sm:text-2xl font-medium leading-snug">Une approche naturelle et transparente du cycle féminin</h2>
     <p class="text-sm text-[#6B6B6B] leading-relaxed mt-5">
-      Née à Kénitra, FLOWA formule ses produits à partir de plantes sélectionnées pour leurs vertus apaisantes.
+      Née à Kénitra, Calm and bloom formule ses produits à partir de plantes sélectionnées pour leurs vertus apaisantes.
       Aucune promesse miracle, seulement des ingrédients naturels, dosés avec rigueur, pour accompagner chaque
       femme avec douceur pendant son cycle.
     </p>
@@ -326,13 +326,13 @@
   <footer id="contact" class="bg-black text-white">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 py-14 grid sm:grid-cols-3 gap-10 text-sm">
       <div>
-        <p class="text-lg tracked font-medium mb-3">FLOWA</p>
+        <p class="text-lg tracked font-medium mb-3">Calm and bloom</p>
         <p class="text-white/60 leading-relaxed">Soulagement naturel du cycle féminin. Formulé au Maroc, pensé pour vous.</p>
       </div>
       <div>
         <p class="tracked-sm text-xs text-white/50 mb-3">CONTACT</p>
         <p class="text-white/80"><i class="fa-solid fa-phone mr-2"></i>+212 6 99 43 33 19</p>
-        <p class="text-white/80 mt-2"><i class="fa-solid fa-envelope mr-2"></i>contact@flowa.ma</p>
+        <p class="text-white/80 mt-2"><i class="fa-solid fa-envelope mr-2"></i>contact@Calm and bloom.ma</p>
         <p class="text-white/80 mt-2"><i class="fa-solid fa-location-dot mr-2"></i>Sidi Taïbi, Kénitra, Maroc</p>
       </div>
       <div>
@@ -342,7 +342,7 @@
       </div>
     </div>
     <div class="border-t border-white/10 py-5 text-center text-[11px] text-white/40">
-      © 2026 FLOWA. Tous droits réservés.
+      © 2026 Calm and bloom. Tous droits réservés.
     </div>
   </footer>
 </div>
@@ -568,7 +568,7 @@
   <div class="border-b border-[#E5E5E5]">
     <div class="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
       <div>
-        <p class="text-lg tracked font-medium">FLOWA</p>
+        <p class="text-lg tracked font-medium">Calm and bloom</p>
         <p class="text-[11px] tracked-sm text-[#6B6B6B]">ESPACE PRO</p>
       </div>
       <button id="btn-back-store-admin" class="border border-black px-4 py-2.5 text-xs tracked-sm hover:bg-black hover:text-white transition-colors">
@@ -751,7 +751,7 @@
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ---------------- STATE ---------------- */
-  let cart = JSON.parse(localStorage.getItem('flowa_cart_items') || '[]'); // [{ key, name, unitPrice, qty, image }]
+  let cart = JSON.parse(localStorage.getItem('Calm and bloom_cart_items') || '[]'); // [{ key, name, unitPrice, qty, image }]
   let orders = [];       // toutes les commandes (vue admin)
   let myOrders = [];     // commandes du client connecté
   let products = [];     // chargés depuis Supabase
@@ -774,7 +774,7 @@
   const money = (n) => n.toLocaleString('fr-FR') + ' DH';
 
   /* ---------------- PANIER ---------------- */
-  function saveCartStorage() { localStorage.setItem('flowa_cart_items', JSON.stringify(cart)); }
+  function saveCartStorage() { localStorage.setItem('Calm and bloom_cart_items', JSON.stringify(cart)); }
   function cartItemCount() { return cart.reduce((s, i) => s + i.qty, 0); }
   function cartTotal() { return cart.reduce((s, i) => s + i.unitPrice * i.qty, 0); }
 
