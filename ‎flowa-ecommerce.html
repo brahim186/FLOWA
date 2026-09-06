@@ -150,7 +150,7 @@
 
         <!-- Quantity -->
         <div class="mt-6">
-          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ</p>
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ <span class="text-[#C5A880]">(5 max. par commande)</span></p>
           <div class="inline-flex items-center border border-[#E5E5E5]">
             <button id="btn-qty-minus-main" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Diminuer">−</button>
             <span id="qty-main" class="w-10 h-10 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
@@ -279,7 +279,7 @@
         </div>
 
         <div class="mt-6">
-          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ</p>
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">QUANTITÉ <span class="text-[#C5A880]">(5 max. par commande)</span></p>
           <div class="inline-flex items-center border border-[#E5E5E5]">
             <button id="btn-qty-minus-detail" class="w-10 h-10 hover:bg-stone-50 transition-colors" aria-label="Diminuer">−</button>
             <span id="qty-detail" class="w-10 h-10 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
@@ -287,9 +287,14 @@
           </div>
         </div>
 
-        <div class="mt-8">
+        <p class="text-sm text-[#6B6B6B] mt-4">Total : <span id="detail-total" class="text-black font-medium">—</span></p>
+
+        <div class="mt-8 flex flex-col gap-3">
           <button id="btn-order-detail" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors">
             COMMANDER MAINTENANT
+          </button>
+          <button id="btn-add-cart-detail" class="w-full border border-black py-4 text-sm tracked-sm hover:bg-black hover:text-white transition-colors">
+            AJOUTER AU PANIER
           </button>
         </div>
 
@@ -338,7 +343,7 @@
         </div>
 
         <div class="flex items-center justify-between pt-2">
-          <span class="text-xs tracked-sm text-[#6B6B6B]">QUANTITÉ</span>
+          <span class="text-xs tracked-sm text-[#6B6B6B]">QUANTITÉ <span class="text-[#C5A880]">(5 max.)</span></span>
           <div class="inline-flex items-center border border-[#E5E5E5]">
             <button type="button" id="btn-qty-minus-checkout" class="w-9 h-9 hover:bg-stone-50" aria-label="Diminuer">−</button>
             <span id="qty-checkout" class="w-9 h-9 flex items-center justify-center text-sm border-x border-[#E5E5E5]">1</span>
@@ -423,6 +428,13 @@
         <img id="edit-product-current-image" class="hidden w-24 h-24 object-cover border border-[#E5E5E5] mb-2" alt="Photo actuelle">
         <input id="edit-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
         <p class="text-[10px] text-[#6B6B6B] mt-1">Laissez vide pour garder la photo actuelle.</p>
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">OPTIONS (TAILLE / CAPACITÉ)</label>
+        <div id="edit-variant-rows" class="space-y-2"></div>
+        <button type="button" id="btn-add-edit-variant-row" class="mt-2 text-xs text-[#C5A880] hover:underline">
+          <i class="fa-solid fa-plus mr-1"></i>Ajouter une option
+        </button>
       </div>
       <div class="flex gap-3 pt-2">
         <button type="button" id="btn-cancel-edit-product" class="flex-1 border border-[#E5E5E5] py-3 text-xs tracked-sm hover:bg-stone-50">ANNULER</button>
@@ -556,8 +568,8 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
-  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
+ const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co"; 
+ const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ---------------- STATE ---------------- */
@@ -729,7 +741,7 @@
 
   /* ---------------- QUANTITY (main) ---------------- */
   $('btn-qty-plus-main').addEventListener('click', () => {
-    qtyMain = Math.min(qtyMain + 1, 10);
+    qtyMain = Math.min(qtyMain + 1, 5);
     $('qty-main').textContent = qtyMain;
     refreshMainPrice();
   });
@@ -783,6 +795,9 @@
         <button class="btn-order-routine mt-3 w-full border border-black py-2.5 text-[11px] tracked-sm hover:bg-black hover:text-white transition-colors" data-id="${p.id}">
           VOIR LE PRODUIT
         </button>
+        <button class="btn-add-cart-routine mt-2 w-full text-[11px] tracked-sm text-[#6B6B6B] hover:text-black transition-colors" data-id="${p.id}">
+          <i class="fa-solid fa-bag-shopping mr-1.5"></i>AJOUTER AU PANIER
+        </button>
       </div>
     `;
     }).join('');
@@ -791,6 +806,16 @@
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         openProductDetail(el.getAttribute('data-id'));
+      });
+    });
+
+    document.querySelectorAll('.btn-add-cart-routine').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cartCount += 1;
+        saveCart();
+        updateCartBadge();
+        showToast('AJOUTÉ AU PANIER');
       });
     });
   }
@@ -810,6 +835,13 @@
   let detailProduct = null;
   let detailVariant = null; // { id, label, price } ou null si pas d'options
   let qtyDetail = 1;
+
+  function currentDetailUnitPrice() {
+    return detailVariant ? detailVariant.price : (detailProduct ? detailProduct.price : 0);
+  }
+  function updateDetailTotal() {
+    $('detail-total').textContent = money(currentDetailUnitPrice() * qtyDetail);
+  }
 
   function openProductDetail(id) {
     const p = products.find(pr => pr.id === id);
@@ -841,6 +873,7 @@
           btn.classList.remove('border-[#E5E5E5]');
           btn.classList.add('border-black');
           $('detail-price').textContent = money(detailVariant.price);
+          updateDetailTotal();
         });
       });
       $('detail-price').textContent = money(detailVariant.price);
@@ -851,6 +884,7 @@
       $('detail-price').textContent = money(p.price);
     }
 
+    updateDetailTotal();
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.remove('hidden');
     window.scrollTo(0, 0);
@@ -864,21 +898,31 @@
   $('btn-qty-minus-detail').addEventListener('click', () => {
     qtyDetail = Math.max(qtyDetail - 1, 1);
     $('qty-detail').textContent = qtyDetail;
+    updateDetailTotal();
   });
   $('btn-qty-plus-detail').addEventListener('click', () => {
-    qtyDetail = Math.min(qtyDetail + 1, 10);
+    qtyDetail = Math.min(qtyDetail + 1, 5);
     $('qty-detail').textContent = qtyDetail;
+    updateDetailTotal();
   });
 
   $('btn-order-detail').addEventListener('click', () => {
     if (!detailProduct) return;
-    const unitPrice = detailVariant ? detailVariant.price : detailProduct.price;
+    const unitPrice = currentDetailUnitPrice();
     const label = detailVariant ? `${detailProduct.name} — ${detailVariant.label}` : detailProduct.name;
     openCheckout(label, unitPrice);
     qtyCheckout = qtyDetail;
     $('qty-checkout').textContent = qtyCheckout;
     $('checkout-qty-display').textContent = qtyCheckout;
     $('checkout-total').textContent = money(unitPrice * qtyCheckout);
+  });
+
+  $('btn-add-cart-detail').addEventListener('click', () => {
+    if (!detailProduct) return;
+    cartCount += qtyDetail;
+    saveCart();
+    updateCartBadge();
+    showToast('AJOUTÉ AU PANIER');
   });
 
   /* ---------------- CHECKOUT MODAL ---------------- */
@@ -918,7 +962,7 @@
   $('modal-checkout').addEventListener('click', (e) => { if (e.target === $('modal-checkout')) closeCheckout(); });
 
   $('btn-qty-plus-checkout').addEventListener('click', () => {
-    qtyCheckout = Math.min(qtyCheckout + 1, 10);
+    qtyCheckout = Math.min(qtyCheckout + 1, 5);
     $('qty-checkout').textContent = qtyCheckout;
     refreshCheckoutTotal();
   });
@@ -1139,6 +1183,24 @@
   }
 
   /* ---------------- ADMIN: EDIT PRODUCT ---------------- */
+  let editOriginalVariantIds = [];
+
+  function createEditVariantRow(variant) {
+    const row = document.createElement('div');
+    row.className = 'variant-row flex gap-2 items-center';
+    row.setAttribute('data-variant-id', variant ? variant.id : '');
+    row.innerHTML = `
+      <input type="text" placeholder="Ex. Grand" value="${variant ? escapeHtml(variant.label) : ''}" class="variant-label flex-1 border border-[#E5E5E5] px-3 py-2 text-sm focus:border-black outline-none">
+      <input type="number" min="1" placeholder="Prix DH" value="${variant ? variant.price : ''}" class="variant-price w-24 border border-[#E5E5E5] px-3 py-2 text-sm focus:border-black outline-none">
+      <button type="button" class="btn-remove-variant-row text-[#6B6B6B] hover:text-red-600 shrink-0" aria-label="Retirer"><i class="fa-solid fa-xmark"></i></button>
+    `;
+    row.querySelector('.btn-remove-variant-row').addEventListener('click', () => row.remove());
+    return row;
+  }
+  $('btn-add-edit-variant-row').addEventListener('click', () => {
+    $('edit-variant-rows').appendChild(createEditVariantRow(null));
+  });
+
   function openEditProduct(id) {
     const p = products.find(pr => pr.id === id);
     if (!p) return;
@@ -1153,6 +1215,11 @@
     } else {
       $('edit-product-current-image').classList.add('hidden');
     }
+
+    editOriginalVariantIds = (p.variants || []).map(v => v.id);
+    $('edit-variant-rows').innerHTML = '';
+    (p.variants || []).forEach(v => $('edit-variant-rows').appendChild(createEditVariantRow(v)));
+
     $('modal-edit-product').classList.remove('hidden');
   }
 
@@ -1193,9 +1260,52 @@
 
     const { error } = await supabase.from('products').update(updates).eq('id', id);
 
+    if (error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'ENREGISTRER';
+      alert("Erreur lors de l'enregistrement.");
+      console.error(error);
+      return;
+    }
+
+    // ---- مزامنة الخيارات (variants): حذف المحذوفة، تحديث الموجودة، إضافة الجديدة ----
+    const rows = Array.from(document.querySelectorAll('#edit-variant-rows .variant-row'));
+    const currentIds = [];
+    const toInsert = [];
+    const toUpdate = [];
+
+    rows.forEach(row => {
+      const vid = row.getAttribute('data-variant-id');
+      const label = row.querySelector('.variant-label').value.trim();
+      const vprice = parseInt(row.querySelector('.variant-price').value, 10);
+      if (!label || !vprice || vprice <= 0) return; // صف غير مكتمل، نتجاهلوه
+      if (vid) {
+        currentIds.push(vid);
+        toUpdate.push({ id: vid, label, price: vprice });
+      } else {
+        toInsert.push({ product_id: id, label, price: vprice });
+      }
+    });
+
+    const toDeleteIds = editOriginalVariantIds.filter(vid => !currentIds.includes(vid));
+
+    let variantsHadError = false;
+    for (const v of toUpdate) {
+      const { error: uErr } = await supabase.from('product_variants').update({ label: v.label, price: v.price }).eq('id', v.id);
+      if (uErr) { variantsHadError = true; console.error(uErr); }
+    }
+    if (toInsert.length) {
+      const { error: iErr } = await supabase.from('product_variants').insert(toInsert);
+      if (iErr) { variantsHadError = true; console.error(iErr); }
+    }
+    if (toDeleteIds.length) {
+      const { error: dErr } = await supabase.from('product_variants').delete().in('id', toDeleteIds);
+      if (dErr) { variantsHadError = true; console.error(dErr); }
+    }
+
     submitBtn.disabled = false;
     submitBtn.textContent = 'ENREGISTRER';
-    if (error) { alert("Erreur lors de l'enregistrement."); console.error(error); return; }
+    if (variantsHadError) alert("Le produit a été modifié mais une erreur est survenue avec certaines options.");
 
     // نحيدو الصورة القديمة من التخزين إذا تبدلات بواحدة جديدة
     if (file && oldProduct && oldProduct.image_url) {
