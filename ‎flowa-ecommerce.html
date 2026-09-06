@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
   * { font-family: 'Jost', sans-serif; }
   body { color: #111111; }
@@ -26,6 +27,9 @@
   input:focus, select:focus, button:focus-visible { outline: 2px solid #C5A880; outline-offset: 2px; }
   ::selection { background: #C5A880; color: #111111; }
   .scrollbar-none::-webkit-scrollbar{ display:none; }
+  .payment-option:has(input:checked) { border-color: #111111; background: #FAFAF9; }
+  .StripeElement { padding-top: 2px; }
+  .StripeElement--invalid { box-shadow: 0 0 0 1px #dc2626 inset; }
 </style>
 </head>
 <body class="bg-white text-[#111111]">
@@ -72,7 +76,7 @@
         </div>
       </div>
       <button aria-label="Favoris" class="hidden sm:block hover:text-[#C5A880] transition-colors"><i class="fa-regular fa-heart"></i></button>
-      <button aria-label="Panier" class="relative hover:text-[#C5A880] transition-colors">
+      <button id="btn-cart" aria-label="Panier" class="relative hover:text-[#C5A880] transition-colors">
         <i class="fa-solid fa-bag-shopping"></i>
         <span id="cart-badge" class="absolute -top-2 -right-2 bg-black text-white text-[10px] leading-none rounded-full w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center">0</span>
       </button>
@@ -333,6 +337,36 @@
   </footer>
 </div>
 
+<!-- ============ CART MODAL (PANIER) ============ -->
+<div id="modal-cart" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto flex flex-col">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#E5E5E5] shrink-0">
+      <p class="tracked-sm text-sm font-medium">MON PANIER</p>
+      <button id="btn-close-cart" class="text-lg text-[#6B6B6B] hover:text-black" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="cart-items-list" class="px-6 py-5 space-y-4 overflow-y-auto"></div>
+
+    <p id="cart-empty" class="hidden text-center text-sm text-[#6B6B6B] py-14 px-6">
+      <i class="fa-regular fa-bag-shopping text-2xl block mb-3 text-[#C5A880]"></i>
+      Votre panier est vide.
+    </p>
+
+    <div id="cart-footer" class="border-t border-[#E5E5E5] px-6 py-5 space-y-3 shrink-0">
+      <div class="flex items-center justify-between">
+        <span class="text-sm tracked-sm">SOUS-TOTAL</span>
+        <span id="cart-subtotal" class="text-lg font-medium">— DH</span>
+      </div>
+      <button id="btn-cart-checkout" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors">
+        CONFIRMER LA COMMANDE
+      </button>
+      <button id="btn-cart-continue" class="w-full border border-black py-3.5 text-sm tracked-sm hover:bg-black hover:text-white transition-colors">
+        CONTINUER MES ACHATS
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ CHECKOUT MODAL ============ -->
 <div id="modal-checkout" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
   <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto">
@@ -342,12 +376,19 @@
     </div>
 
     <div class="px-6 py-5">
-      <div class="flex items-center justify-between bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6">
+
+      <!-- Mode "achat direct" (Commander maintenant) : un seul article -->
+      <div id="checkout-single-item" class="flex items-center justify-between bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6">
         <div>
           <p id="checkout-product-name" class="text-sm font-medium">—</p>
           <p class="text-xs text-[#6B6B6B] mt-0.5">Quantité : <span id="checkout-qty-display">1</span></p>
         </div>
         <p id="checkout-product-price" class="text-sm font-medium">— DH</p>
+      </div>
+
+      <!-- Mode "panier" : plusieurs articles (lecture seule ; modifier dans le panier) -->
+      <div id="checkout-cart-summary" class="hidden bg-stone-50 border border-[#E5E5E5] mb-6 divide-y divide-[#E5E5E5]">
+        <div id="checkout-cart-items"></div>
       </div>
 
       <form id="checkout-form" class="space-y-4">
@@ -369,7 +410,7 @@
           <textarea id="input-address" required rows="2" placeholder="Immeuble, rue, quartier, point de repère..." class="w-full border border-[#E5E5E5] px-4 py-3 text-sm focus:border-black outline-none transition-colors resize-none"></textarea>
         </div>
 
-        <div class="flex items-center justify-between pt-2">
+        <div id="checkout-qty-row" class="flex items-center justify-between pt-2">
           <span class="text-xs tracked-sm text-[#6B6B6B]">QUANTITÉ <span class="text-[#C5A880]">(5 max.)</span></span>
           <div class="inline-flex items-center border border-[#E5E5E5]">
             <button type="button" id="btn-qty-minus-checkout" class="w-9 h-9 hover:bg-stone-50" aria-label="Diminuer">−</button>
@@ -378,15 +419,76 @@
           </div>
         </div>
 
+        <!-- ---------------- MODE DE PAIEMENT ---------------- -->
+        <div class="border-t border-[#E5E5E5] pt-4">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">MODE DE PAIEMENT</p>
+          <div class="space-y-2">
+            <label class="payment-option flex items-center gap-3 border border-black px-4 py-3 cursor-pointer">
+              <input type="radio" name="payment-method" id="pm-cod" value="cod" checked class="accent-black">
+              <span class="flex-1">
+                <span class="block text-sm font-medium"><i class="fa-solid fa-truck-fast mr-2 text-[#C5A880]"></i>Paiement à la livraison</span>
+                <span class="block text-[11px] text-[#6B6B6B] mt-0.5">Payez en espèces à la réception du colis</span>
+              </span>
+            </label>
+            <label class="payment-option flex items-center gap-3 border border-[#E5E5E5] px-4 py-3 cursor-pointer">
+              <input type="radio" name="payment-method" id="pm-card" value="card" class="accent-black">
+              <span class="flex-1">
+                <span class="block text-sm font-medium"><i class="fa-regular fa-credit-card mr-2 text-[#C5A880]"></i>Carte bancaire</span>
+                <span class="block text-[11px] text-[#6B6B6B] mt-0.5">Paiement sécurisé en ligne via Stripe</span>
+              </span>
+              <span class="flex gap-1 text-lg text-[#6B6B6B]"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i></span>
+            </label>
+          </div>
+
+          <!-- Champs carte bancaire (Stripe Elements séparés) — visibles seulement si "Carte bancaire" est choisi -->
+          <div id="card-payment-fields" class="hidden mt-4 border border-[#E5E5E5] p-4 space-y-3.5">
+            <div class="flex items-center justify-between">
+              <p class="text-xs tracked-sm text-[#6B6B6B]">DÉTAILS DE LA CARTE</p>
+              <div class="flex items-center gap-1.5 text-xl text-[#6B6B6B]">
+                <i class="fa-brands fa-cc-visa"></i>
+                <i class="fa-brands fa-cc-mastercard"></i>
+                <i class="fa-brands fa-cc-amex"></i>
+                <i class="fa-brands fa-cc-discover"></i>
+              </div>
+            </div>
+
+            <div>
+              <input id="input-card-name" type="text" placeholder="Nom sur la carte" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3 text-sm focus:border-black outline-none transition-colors">
+            </div>
+
+            <div>
+              <!-- Stripe.js monte ici le numéro de carte -->
+              <div id="card-number-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Stripe.js monte ici la date d'expiration -->
+              <div id="card-expiry-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
+              <!-- Stripe.js monte ici le CVV -->
+              <div id="card-cvc-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
+            </div>
+
+            <p id="card-errors" class="hidden text-[11px] text-red-600"></p>
+
+            <div class="text-center pt-1">
+              <i class="fa-solid fa-lock text-[#6B6B6B]"></i>
+              <p class="text-[11px] text-[#6B6B6B] mt-1">
+                Vos moyens de paiement sont enregistrés et stockés en toute sécurité.<br>
+                <a href="#" class="text-[#C5A880] hover:underline">Conditions et politique de confidentialité applicables.</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between border-t border-[#E5E5E5] pt-4 mt-2">
           <span class="text-sm tracked-sm">TOTAL</span>
           <span id="checkout-total" class="text-lg font-medium">— DH</span>
         </div>
 
-        <button type="submit" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors mt-2">
+        <button type="submit" id="btn-submit-checkout" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors mt-2">
           CONFIRMER LA COMMANDE
         </button>
-        <p class="text-[11px] text-center text-[#6B6B6B]">Paiement à la livraison — aucune carte requise</p>
+        <p id="checkout-payment-note" class="text-[11px] text-center text-[#6B6B6B]">Paiement à la livraison — aucune carte requise</p>
       </form>
     </div>
   </div>
@@ -536,6 +638,7 @@
             <th class="px-4 py-3">VILLE</th>
             <th class="px-4 py-3">ADRESSE</th>
             <th class="px-4 py-3">PRODUIT</th>
+            <th class="px-4 py-3">PAIEMENT</th>
             <th class="px-4 py-3">TOTAL</th>
             <th class="px-4 py-3">STATUT</th>
             <th class="px-4 py-3 text-center">ACTION</th>
@@ -619,15 +722,72 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
-  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co";
+  const SUPABASE_URL = https://uhlhkaitrxqmknhsvekh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  /* ---------------- STRIPE CONFIG ---------------- */
+  // ⚠️ عوّض بمفتاحك العمومي (Publishable key) من Stripe Dashboard → Developers → API keys
+  const STRIPE_PUBLISHABLE_KEY = "pk_test_VOTRE_CLE_PUBLIQUE_STRIPE";
+  // ⚠️ رابط الـ backend ديالك (Supabase Edge Function مثلا) اللي كيخلق PaymentIntent
+  //    ما يمكنش نخلقو PaymentIntent مباشرة من المتصفح لأن هذا كيتطلب المفتاح السري (Secret key)
+  //    اللي خطير بزاف يتحط فالكود ديال الموقع. خاصك تصاوب Edge Function صغيرة، شوف المثال فأسفل الملف.
+  const STRIPE_CREATE_INTENT_ENDPOINT = "https://VOTRE-PROJET.functions.supabase.co/create-payment-intent";
+  let stripe = null;
+  let stripeCardNumber = null;
+  let stripeCardExpiry = null;
+  let stripeCardCvc = null;
+  if (window.Stripe && STRIPE_PUBLISHABLE_KEY && !STRIPE_PUBLISHABLE_KEY.includes('VOTRE_CLE')) {
+    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+  }
+
+  /*
+   * ==================================================================================
+   *  إعداد Stripe و Supabase — اللي خاصك تديرو باش الدفع بالبطاقة يخدم فعلا
+   * ==================================================================================
+   *
+   * 1) فـ Supabase → SQL Editor، زيد هاد الأعمدة لجدول "orders" :
+   *
+   *    alter table orders add column items jsonb;
+   *    alter table orders add column payment_method text default 'cod';
+   *    alter table orders add column payment_status text default 'a_la_livraison';
+   *    alter table orders add column stripe_payment_intent_id text;
+   *
+   * 2) الدفع بالبطاقة كيتطلب "Secret key" ديال Stripe، وهاد المفتاح ما ينحطش أبدا
+   *    فكود الموقع (المتصفح) لأنه خطير. خاصك تصاوب دالة صغيرة فالسيرفر (Supabase Edge
+   *    Function) اللي كتخلق PaymentIntent وترجع client_secret للمتصفح. مثال:
+   *
+   *    // supabase/functions/create-payment-intent/index.ts
+   *    import Stripe from "https://esm.sh/stripe@14?target=deno";
+   *    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
+   *    Deno.serve(async (req) => {
+   *      const { amount, currency } = await req.json();
+   *      const intent = await stripe.paymentIntents.create({
+   *        amount: Math.round(amount * 100), // بالسنتيمات
+   *        currency: currency || "mad",
+   *      });
+   *      return new Response(JSON.stringify({ client_secret: intent.client_secret }), {
+   *        headers: { "Content-Type": "application/json" },
+   *      });
+   *    });
+   *
+   *    بعد نشرها (supabase functions deploy create-payment-intent) عوّض
+   *    STRIPE_CREATE_INTENT_ENDPOINT فأعلاه برابط الدالة ديالك، و STRIPE_PUBLISHABLE_KEY
+   *    بالمفتاح العمومي (pk_...) ديالك.
+   *
+   * 3) حيت Stripe كيتطلب حساب مفعّل بالمغرب أو خارجو، تأكد قبل ما تفعّلو فالإنتاج أن
+   *    حسابك يقدر يقبض بالدرهم المغربي (MAD)، أو اختار عملة أخرى مدعومة.
+   *
+   * حتى توفر هاد الإعدادات، خيار "Carte bancaire" غادي يبان للزبون ولكن غادي يعطيه
+   * رسالة واضحة بأن الدفع بالبطاقة ماشي مفعّل بعد، وخيار "Paiement à la livraison"
+   * غادي يخدم بشكل عادي فكل الحالات.
+   */
+
   /* ---------------- STATE ---------------- */
-  let cartCount = parseInt(localStorage.getItem('flowa_cart_count') || '0', 10);
-  let orders = [];       // toutes les commandes (vue admin)
-  let myOrders = [];     // commandes du client connecté
-  let products = [];     // chargés depuis Supabase
+  let cart = [];          // panier : [{ key, id, variantId, name, unitPrice, qty, image }]
+  let orders = [];        // toutes les commandes (vue admin)
+  let myOrders = [];      // commandes du client connecté
+  let products = [];      // chargés depuis Supabase
   let excludeProductId = null; // إلا كنا فصفحة تفاصيل منتج، نخبيوه من "Complétez votre routine" ونحصرو فـ 4 آخرين
 
   let currentUser = null;  // session utilisateur Supabase (ou null si invité)
@@ -636,15 +796,124 @@
   let selectedFormat = { format: 'gel', price: 249, label: 'Gel Apaisant 50ml' };
   let qtyMain = 1;
   let qtyCheckout = 1;
-  let currentCheckoutItem = null; // { name, unitPrice }
+  let currentCheckoutItem = null;   // mode "achat direct" : { name, unitPrice }
+  let checkoutMode = 'single';      // 'single' (Commander maintenant) أو 'cart' (Confirmer depuis le panier)
+  let selectedPaymentMethod = 'cod'; // 'cod' أو 'card'
+
+  try {
+    cart = JSON.parse(localStorage.getItem('flowa_cart') || '[]');
+    if (!Array.isArray(cart)) cart = [];
+  } catch (e) { cart = []; }
 
   /* ---------------- HELPERS ---------------- */
   const $ = (id) => document.getElementById(id);
   const money = (n) => n.toLocaleString('fr-FR') + ' DH';
 
-  function saveCart() { localStorage.setItem('flowa_cart_count', String(cartCount)); }
+  /* ---------------- PANIER (CART) ---------------- */
+  function saveCart() { localStorage.setItem('flowa_cart', JSON.stringify(cart)); }
 
-  function updateCartBadge() { $('cart-badge').textContent = cartCount; }
+  function cartTotalQty() { return cart.reduce((sum, it) => sum + it.qty, 0); }
+  function cartTotalPrice() { return cart.reduce((sum, it) => sum + it.unitPrice * it.qty, 0); }
+
+  function updateCartBadge() { $('cart-badge').textContent = cartTotalQty(); }
+
+  // يزيد منتوج للپانييه، أو يزيد الكمية إلا كان موجود من قبل (نفس المنتوج + نفس الخيار)
+  function addToCart({ key, id, variantId, name, unitPrice, qty, image }) {
+    const existing = cart.find(it => it.key === key);
+    if (existing) {
+      existing.qty = Math.min(existing.qty + qty, 5);
+    } else {
+      cart.push({ key, id, variantId: variantId || null, name, unitPrice, qty: Math.min(qty, 5), image: image || null });
+    }
+    saveCart();
+    updateCartBadge();
+    showToast('AJOUTÉ AU PANIER');
+  }
+
+  function removeFromCart(key) {
+    cart = cart.filter(it => it.key !== key);
+    saveCart();
+    updateCartBadge();
+    renderCart();
+  }
+
+  function changeCartQty(key, delta) {
+    const item = cart.find(it => it.key === key);
+    if (!item) return;
+    item.qty = Math.max(1, Math.min(5, item.qty + delta));
+    saveCart();
+    updateCartBadge();
+    renderCart();
+  }
+
+  function renderCart() {
+    const list = $('cart-items-list');
+    const empty = $('cart-empty');
+    const footer = $('cart-footer');
+
+    if (cart.length === 0) {
+      list.innerHTML = '';
+      list.classList.add('hidden');
+      empty.classList.remove('hidden');
+      footer.classList.add('hidden');
+      return;
+    }
+    list.classList.remove('hidden');
+    empty.classList.add('hidden');
+    footer.classList.remove('hidden');
+
+    list.innerHTML = cart.map(it => `
+      <div class="flex items-center gap-3" data-cart-key="${escapeHtml(it.key)}">
+        <div class="w-16 h-16 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center overflow-hidden">
+          ${it.image
+            ? `<img src="${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="w-full h-full object-cover">`
+            : `<i class="fa-solid fa-spa text-[#C5A880] text-xl"></i>`}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${escapeHtml(it.name)}</p>
+          <p class="text-xs text-[#6B6B6B] mt-0.5">${money(it.unitPrice)}</p>
+          <div class="inline-flex items-center border border-[#E5E5E5] mt-2">
+            <button class="btn-cart-qty-minus w-7 h-7 hover:bg-stone-50 text-xs" data-key="${escapeHtml(it.key)}" aria-label="Diminuer">−</button>
+            <span class="w-7 h-7 flex items-center justify-center text-xs border-x border-[#E5E5E5]">${it.qty}</span>
+            <button class="btn-cart-qty-plus w-7 h-7 hover:bg-stone-50 text-xs" data-key="${escapeHtml(it.key)}" aria-label="Augmenter">+</button>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-sm font-medium">${money(it.unitPrice * it.qty)}</p>
+          <button class="btn-cart-remove text-[11px] text-[#6B6B6B] hover:text-red-600 mt-2" data-key="${escapeHtml(it.key)}">
+            <i class="fa-regular fa-trash-can mr-1"></i>Supprimer
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    $('cart-subtotal').textContent = money(cartTotalPrice());
+
+    document.querySelectorAll('.btn-cart-qty-plus').forEach(b => b.addEventListener('click', () => changeCartQty(b.getAttribute('data-key'), 1)));
+    document.querySelectorAll('.btn-cart-qty-minus').forEach(b => b.addEventListener('click', () => changeCartQty(b.getAttribute('data-key'), -1)));
+    document.querySelectorAll('.btn-cart-remove').forEach(b => b.addEventListener('click', () => removeFromCart(b.getAttribute('data-key'))));
+  }
+
+  function openCart() {
+    renderCart();
+    $('modal-cart').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeCart() {
+    $('modal-cart').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  $('btn-cart').addEventListener('click', openCart);
+  $('btn-close-cart').addEventListener('click', closeCart);
+  $('btn-cart-continue').addEventListener('click', closeCart);
+  $('modal-cart').addEventListener('click', (e) => { if (e.target === $('modal-cart')) closeCart(); });
+
+  $('btn-cart-checkout').addEventListener('click', () => {
+    if (cart.length === 0) return;
+    closeCart();
+    openCheckoutFromCart();
+  });
 
   function showToast(text) {
     const t = $('toast');
@@ -825,12 +1094,17 @@
     chevron.classList.toggle('rotate-180');
   });
 
-  /* ---------------- ADD TO CART ---------------- */
+  /* ---------------- ADD TO CART (produit vedette en haut de page) ---------------- */
   $('btn-add-cart').addEventListener('click', () => {
-    cartCount += qtyMain;
-    saveCart();
-    updateCartBadge();
-    showToast('AJOUTÉ AU PANIER');
+    addToCart({
+      key: 'hero-' + selectedFormat.format,
+      id: 'hero',
+      variantId: selectedFormat.format,
+      name: selectedFormat.label,
+      unitPrice: selectedFormat.price,
+      qty: qtyMain,
+      image: null,
+    });
   });
 
   /* ---------------- ROUTINE GRID ---------------- */
@@ -877,10 +1151,19 @@
     document.querySelectorAll('.btn-add-cart-routine').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        cartCount += 1;
-        saveCart();
-        updateCartBadge();
-        showToast('AJOUTÉ AU PANIER');
+        const id = btn.getAttribute('data-id');
+        const p = products.find(pr => pr.id === id);
+        if (!p) return;
+        const variant = (p.variants && p.variants.length) ? p.variants[0] : null;
+        addToCart({
+          key: 'p-' + id + '-' + (variant ? variant.id : 'base'),
+          id,
+          variantId: variant ? variant.id : null,
+          name: variant ? `${p.name} — ${variant.label}` : p.name,
+          unitPrice: variant ? variant.price : p.price,
+          qty: 1,
+          image: p.image_url || null,
+        });
       });
     });
   }
@@ -1021,23 +1304,75 @@
 
   $('btn-add-cart-detail').addEventListener('click', () => {
     if (!detailProduct) return;
-    cartCount += qtyDetail;
-    saveCart();
-    updateCartBadge();
-    showToast('AJOUTÉ AU PANIER');
+    const unitPrice = currentDetailUnitPrice();
+    const name = detailVariant ? `${detailProduct.name} — ${detailVariant.label}` : detailProduct.name;
+    addToCart({
+      key: 'p-' + detailProduct.id + '-' + (detailVariant ? detailVariant.id : 'base'),
+      id: detailProduct.id,
+      variantId: detailVariant ? detailVariant.id : null,
+      name,
+      unitPrice,
+      qty: qtyDetail,
+      image: detailProduct.image_url || null,
+    });
   });
 
   /* ---------------- CHECKOUT MODAL ---------------- */
+  function resetPaymentUI() {
+    selectedPaymentMethod = 'cod';
+    $('pm-cod').checked = true;
+    $('pm-card').checked = false;
+    document.querySelectorAll('.payment-option').forEach(l => l.classList.remove('border-black'));
+    document.querySelectorAll('.payment-option')[0].classList.add('border-black');
+    $('card-payment-fields').classList.add('hidden');
+    $('checkout-payment-note').textContent = 'Paiement à la livraison — aucune carte requise';
+    $('card-errors').classList.add('hidden');
+    $('input-card-name').value = '';
+  }
+
+  // Mode "Commander maintenant" : un seul article, quantité modifiable dans le modal
   function openCheckout(name, unitPrice) {
+    checkoutMode = 'single';
     currentCheckoutItem = { name, unitPrice };
     qtyCheckout = 1;
     $('qty-checkout').textContent = qtyCheckout;
     $('checkout-qty-display').textContent = qtyCheckout;
     $('checkout-product-name').textContent = name;
     $('checkout-product-price').textContent = money(unitPrice);
+    $('checkout-single-item').classList.remove('hidden');
+    $('checkout-cart-summary').classList.add('hidden');
+    $('checkout-qty-row').classList.remove('hidden');
     refreshCheckoutTotal();
     $('checkout-form').reset();
     $('phone-error').classList.add('hidden');
+    resetPaymentUI();
+    $('modal-checkout').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Mode "panier" : plusieurs articles, quantités déjà fixées dans le panier
+  function openCheckoutFromCart() {
+    if (cart.length === 0) return;
+    checkoutMode = 'cart';
+    currentCheckoutItem = null;
+    $('checkout-single-item').classList.add('hidden');
+    $('checkout-cart-summary').classList.remove('hidden');
+    $('checkout-qty-row').classList.add('hidden');
+
+    $('checkout-cart-items').innerHTML = cart.map(it => `
+      <div class="flex items-center justify-between px-4 py-3">
+        <div>
+          <p class="text-sm font-medium">${escapeHtml(it.name)}</p>
+          <p class="text-xs text-[#6B6B6B] mt-0.5">Quantité : ${it.qty}</p>
+        </div>
+        <p class="text-sm font-medium">${money(it.unitPrice * it.qty)}</p>
+      </div>
+    `).join('');
+
+    refreshCheckoutTotal();
+    $('checkout-form').reset();
+    $('phone-error').classList.add('hidden');
+    resetPaymentUI();
     $('modal-checkout').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -1048,9 +1383,14 @@
   }
 
   function refreshCheckoutTotal() {
-    if (!currentCheckoutItem) return;
-    $('checkout-total').textContent = money(currentCheckoutItem.unitPrice * qtyCheckout);
-    $('checkout-qty-display').textContent = qtyCheckout;
+    let total = 0;
+    if (checkoutMode === 'cart') {
+      total = cartTotalPrice();
+    } else if (currentCheckoutItem) {
+      total = currentCheckoutItem.unitPrice * qtyCheckout;
+      $('checkout-qty-display').textContent = qtyCheckout;
+    }
+    $('checkout-total').textContent = money(total);
   }
 
   $('btn-order-main').addEventListener('click', () => {
@@ -1074,6 +1414,58 @@
     refreshCheckoutTotal();
   });
 
+  /* ---------------- MODE DE PAIEMENT (COD / CARTE) ---------------- */
+  function ensureStripeCardMounted() {
+    if (!stripe) return; // المفتاح العمومي ديال Stripe ماشي معمر بعد
+    if (stripeCardNumber) return;
+    const elements = stripe.elements();
+    const style = { base: { fontFamily: 'Jost, sans-serif', fontSize: '14px', color: '#111111', '::placeholder': { color: '#9CA3AF' } } };
+
+    // ثلاثة خانات منفصلين (Numéro / MM-AA / CVV) بحال التصميم المطلوب
+    stripeCardNumber = elements.create('cardNumber', { style, placeholder: 'Card number' });
+    stripeCardExpiry = elements.create('cardExpiry', { style });
+    stripeCardCvc = elements.create('cardCvc', { style, placeholder: 'CVV' });
+
+    stripeCardNumber.mount('#card-number-element');
+    stripeCardExpiry.mount('#card-expiry-element');
+    stripeCardCvc.mount('#card-cvc-element');
+
+    const handleCardError = (event) => {
+      const errBox = $('card-errors');
+      if (event.error) {
+        errBox.textContent = event.error.message;
+        errBox.classList.remove('hidden');
+      } else {
+        errBox.classList.add('hidden');
+      }
+    };
+    stripeCardNumber.on('change', handleCardError);
+    stripeCardExpiry.on('change', handleCardError);
+    stripeCardCvc.on('change', handleCardError);
+  }
+
+  document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      selectedPaymentMethod = radio.value;
+      document.querySelectorAll('.payment-option').forEach(l => l.classList.remove('border-black'));
+      radio.closest('.payment-option').classList.add('border-black');
+
+      if (selectedPaymentMethod === 'card') {
+        $('card-payment-fields').classList.remove('hidden');
+        $('checkout-payment-note').textContent = 'Paiement sécurisé par carte bancaire via Stripe';
+        if (!stripe) {
+          $('card-errors').textContent = "Le paiement par carte n'est pas encore configuré sur ce site (clé Stripe manquante).";
+          $('card-errors').classList.remove('hidden');
+        } else {
+          ensureStripeCardMounted();
+        }
+      } else {
+        $('card-payment-fields').classList.add('hidden');
+        $('checkout-payment-note').textContent = 'Paiement à la livraison — aucune carte requise';
+      }
+    });
+  });
+
   /* ---------------- SUBMIT ORDER ---------------- */
   $('checkout-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1092,19 +1484,83 @@
 
     if (!name || !city || !address) return;
 
-    const total = currentCheckoutItem.unitPrice * qtyCheckout;
-    const submitBtn = $('checkout-form').querySelector('button[type="submit"]');
+    // بناء لائحة المنتوجات والمجموع حسب الوضعية : "Commander maintenant" (منتوج واحد) أو "Panier" (بزاف)
+    let items, total, qtySummary, productSummary;
+    if (checkoutMode === 'cart') {
+      items = cart.map(it => ({ name: it.name, unit_price: it.unitPrice, qty: it.qty }));
+      total = cartTotalPrice();
+      qtySummary = cartTotalQty();
+      productSummary = cart.length === 1 ? cart[0].name : `${cart.length} articles`;
+    } else {
+      items = [{ name: currentCheckoutItem.name, unit_price: currentCheckoutItem.unitPrice, qty: qtyCheckout }];
+      total = currentCheckoutItem.unitPrice * qtyCheckout;
+      qtySummary = qtyCheckout;
+      productSummary = currentCheckoutItem.name;
+    }
+
+    const submitBtn = $('btn-submit-checkout');
     submitBtn.disabled = true;
     submitBtn.textContent = 'ENVOI EN COURS…';
+
+    let stripePaymentIntentId = null;
+    let paymentStatus = 'a_la_livraison';
+
+    /* ---- PAIEMENT PAR CARTE (STRIPE) ---- */
+    if (selectedPaymentMethod === 'card') {
+      if (!stripe) {
+        alert("Le paiement par carte n'est pas encore configuré sur ce site (clé Stripe manquante). Choisissez « Paiement à la livraison », ou contactez l'administrateur du site.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'CONFIRMER LA COMMANDE';
+        return;
+      }
+      try {
+        // 1) نطلبو من الـ backend (Edge Function) يخلق PaymentIntent ويرجع client_secret
+        //    ⚠️ هذا الجزء غادي يخدم غير مورا ما تصاوب الـ backend (شوف المثال فأسفل الملف)
+        const resp = await fetch(STRIPE_CREATE_INTENT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: total, currency: 'mad' }),
+        });
+        if (!resp.ok) throw new Error('backend_not_ready');
+        const { client_secret } = await resp.json();
+
+        // 2) نأكدو الدفع بالبطاقة عبر Stripe.js (البيانات البنكية كتمشي مباشرة لـ Stripe، ماشي لسيرفر ديالنا)
+        const result = await stripe.confirmCardPayment(client_secret, {
+          payment_method: {
+            card: stripeCardNumber,
+            billing_details: { name: $('input-card-name').value.trim() || name },
+          },
+        });
+        if (result.error) {
+          $('card-errors').textContent = result.error.message;
+          $('card-errors').classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'CONFIRMER LA COMMANDE';
+          return;
+        }
+        stripePaymentIntentId = result.paymentIntent.id;
+        paymentStatus = 'payee';
+      } catch (err) {
+        console.error(err);
+        alert("Le paiement par carte n'a pas pu être traité (configuration backend Stripe manquante). Choisissez « Paiement à la livraison », ou terminez la configuration Stripe (voir commentaires dans le code).");
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'CONFIRMER LA COMMANDE';
+        return;
+      }
+    }
 
     const order = {
       ref: genOrderRef(),
       user_id: currentUser ? currentUser.id : null, // lié au compte Google si connecté, sinon commande "invité"
       name, phone, city, address,
-      product: currentCheckoutItem.name,
-      qty: qtyCheckout,
+      product: productSummary,
+      qty: qtySummary,
       total,
       status: 'En attente',
+      items,                          // ⚠️ يتطلب عمود jsonb اسمو "items" فجدول orders
+      payment_method: selectedPaymentMethod,       // ⚠️ يتطلب عمود text اسمو "payment_method" ('cod' | 'card')
+      payment_status: paymentStatus,               // ⚠️ يتطلب عمود text اسمو "payment_status"
+      stripe_payment_intent_id: stripePaymentIntentId, // ⚠️ يتطلب عمود text (nullable)
     };
 
     const { data, error } = await supabase.from('orders').insert(order).select().single();
@@ -1116,6 +1572,13 @@
       alert("Une erreur est survenue lors de l'envoi de votre commande. Veuillez réessayer.");
       console.error(error);
       return;
+    }
+
+    // نفرغو الپانييه غير إلا الطلبية جاية من الپانييه
+    if (checkoutMode === 'cart') {
+      cart = [];
+      saveCart();
+      updateCartBadge();
     }
 
     closeCheckout();
@@ -1581,6 +2044,11 @@
         <td class="px-4 py-3">${escapeHtml(o.city)}</td>
         <td class="px-4 py-3 max-w-[200px]"><span class="text-[#6B6B6B]">${escapeHtml(o.address)}</span></td>
         <td class="px-4 py-3">${escapeHtml(o.product)} <span class="text-[#6B6B6B]">×${o.qty}</span></td>
+        <td class="px-4 py-3">
+          ${o.payment_method === 'card'
+            ? `<span class="text-[11px] px-2 py-1 border border-[#E5E5E5] tracked-sm"><i class="fa-regular fa-credit-card mr-1 text-[#C5A880]"></i>Carte${o.payment_status === 'payee' ? ' ✓' : ''}</span>`
+            : `<span class="text-[11px] px-2 py-1 border border-[#E5E5E5] tracked-sm"><i class="fa-solid fa-truck-fast mr-1 text-[#C5A880]"></i>Livraison</span>`}
+        </td>
         <td class="px-4 py-3 font-medium">${money(o.total)}</td>
         <td class="px-4 py-3">
           <select data-id="${o.id}" class="status-select border border-[#E5E5E5] px-2 py-1.5 text-xs focus:border-black outline-none">
