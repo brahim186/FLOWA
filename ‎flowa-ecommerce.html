@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
 <style>
   * { font-family: 'Jost', sans-serif; }
   body { color: #111111; }
@@ -27,9 +26,6 @@
   input:focus, select:focus, button:focus-visible { outline: 2px solid #C5A880; outline-offset: 2px; }
   ::selection { background: #C5A880; color: #111111; }
   .scrollbar-none::-webkit-scrollbar{ display:none; }
-  .payment-option:has(input:checked) { border-color: #111111; background: #FAFAF9; }
-  .StripeElement { padding-top: 2px; }
-  .StripeElement--invalid { box-shadow: 0 0 0 1px #dc2626 inset; }
 </style>
 </head>
 <body class="bg-white text-[#111111]">
@@ -49,7 +45,7 @@
     <a href="#" class="text-xl sm:text-2xl font-semibold tracked select-none">FLOWA</a>
 
     <nav class="hidden md:flex items-center gap-10 text-xs tracked-sm">
-      <a href="#produit" class="hover:text-[#C5A880] transition-colors">Le Produit</a>
+      <a href="#routine" class="hover:text-[#C5A880] transition-colors">Nos Produits</a>
       <a href="#routine" class="hover:text-[#C5A880] transition-colors">Notre Routine</a>
       <a href="#a-propos" class="hover:text-[#C5A880] transition-colors">Notre Histoire</a>
       <a href="#contact" class="hover:text-[#C5A880] transition-colors">Contact</a>
@@ -76,7 +72,7 @@
         </div>
       </div>
       <button aria-label="Favoris" class="hidden sm:block hover:text-[#C5A880] transition-colors"><i class="fa-regular fa-heart"></i></button>
-      <button id="btn-cart" aria-label="Panier" class="relative hover:text-[#C5A880] transition-colors">
+      <button id="btn-open-cart" aria-label="Panier" class="relative hover:text-[#C5A880] transition-colors">
         <i class="fa-solid fa-bag-shopping"></i>
         <span id="cart-badge" class="absolute -top-2 -right-2 bg-black text-white text-[10px] leading-none rounded-full w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center">0</span>
       </button>
@@ -86,7 +82,7 @@
   <!-- mobile menu -->
   <div id="mobile-menu-panel" class="hidden md:hidden border-t border-[#E5E5E5] bg-white">
     <nav class="flex flex-col px-5 py-4 text-xs tracked-sm gap-4">
-      <a href="#produit" class="mobile-link">Le Produit</a>
+      <a href="#routine" class="mobile-link">Nos Produits</a>
       <a href="#routine" class="mobile-link">Notre Routine</a>
       <a href="#a-propos" class="mobile-link">Notre Histoire</a>
       <a href="#contact" class="mobile-link">Contact</a>
@@ -97,8 +93,22 @@
 <!-- ============ STORE VIEW ============ -->
 <main id="view-store">
 
-  <!-- ============ PRODUCT DETAIL SECTION ============ -->
-  <section id="produit" class="max-w-7xl mx-auto px-5 sm:px-8 pt-10 sm:pt-16 pb-16">
+  <!-- ============ BANNER CAROUSEL ============ -->
+  <section id="banner-carousel-wrap" class="hidden relative">
+    <div id="banner-carousel" class="relative w-full h-[220px] sm:h-[340px] md:h-[420px] overflow-hidden bg-stone-100">
+      <!-- slides injectés en JS -->
+    </div>
+    <button id="btn-banner-prev" aria-label="Précédent" class="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button id="btn-banner-next" aria-label="Suivant" class="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <div id="banner-dots" class="flex items-center justify-center gap-2 py-3"></div>
+  </section>
+
+  <!-- ============ PRODUCT DETAIL SECTION (masquée par défaut, non affichée sur l'accueil) ============ -->
+  <section id="produit" class="hidden max-w-7xl mx-auto px-5 sm:px-8 pt-10 sm:pt-16 pb-16">
     <div class="grid md:grid-cols-2 gap-10 lg:gap-16">
 
       <!-- LEFT: GALLERY -->
@@ -337,31 +347,27 @@
   </footer>
 </div>
 
-<!-- ============ CART MODAL (PANIER) ============ -->
-<div id="modal-cart" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-  <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto flex flex-col">
+<!-- ============ CART MODAL ============ -->
+<div id="modal-cart" class="hidden fixed inset-0 z-40 bg-black/50 flex items-end sm:items-center justify-end p-0 sm:p-4">
+  <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] h-full sm:h-auto sm:max-h-[92vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-5 border-b border-[#E5E5E5] shrink-0">
       <p class="tracked-sm text-sm font-medium">MON PANIER</p>
       <button id="btn-close-cart" class="text-lg text-[#6B6B6B] hover:text-black" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <div id="cart-items-list" class="px-6 py-5 space-y-4 overflow-y-auto"></div>
-
-    <p id="cart-empty" class="hidden text-center text-sm text-[#6B6B6B] py-14 px-6">
-      <i class="fa-regular fa-bag-shopping text-2xl block mb-3 text-[#C5A880]"></i>
+    <div id="cart-items-list" class="flex-1 overflow-y-auto px-6 py-5 space-y-4"></div>
+    <p id="cart-empty" class="hidden text-center text-sm text-[#6B6B6B] py-16 px-6">
+      <i class="fa-regular fa-bag-shopping text-2xl block mb-3 text-[#E5E5E5]"></i>
       Votre panier est vide.
     </p>
 
-    <div id="cart-footer" class="border-t border-[#E5E5E5] px-6 py-5 space-y-3 shrink-0">
-      <div class="flex items-center justify-between">
+    <div id="cart-footer" class="hidden border-t border-[#E5E5E5] px-6 py-5 shrink-0">
+      <div class="flex items-center justify-between mb-4">
         <span class="text-sm tracked-sm">SOUS-TOTAL</span>
         <span id="cart-subtotal" class="text-lg font-medium">— DH</span>
       </div>
       <button id="btn-cart-checkout" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors">
-        CONFIRMER LA COMMANDE
-      </button>
-      <button id="btn-cart-continue" class="w-full border border-black py-3.5 text-sm tracked-sm hover:bg-black hover:text-white transition-colors">
-        CONTINUER MES ACHATS
+        PASSER LA COMMANDE
       </button>
     </div>
   </div>
@@ -376,9 +382,7 @@
     </div>
 
     <div class="px-6 py-5">
-
-      <!-- Mode "achat direct" (Commander maintenant) : un seul article -->
-      <div id="checkout-single-item" class="flex items-center justify-between bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6">
+      <div id="checkout-single-summary" class="flex items-center justify-between bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6">
         <div>
           <p id="checkout-product-name" class="text-sm font-medium">—</p>
           <p class="text-xs text-[#6B6B6B] mt-0.5">Quantité : <span id="checkout-qty-display">1</span></p>
@@ -386,10 +390,7 @@
         <p id="checkout-product-price" class="text-sm font-medium">— DH</p>
       </div>
 
-      <!-- Mode "panier" : plusieurs articles (lecture seule ; modifier dans le panier) -->
-      <div id="checkout-cart-summary" class="hidden bg-stone-50 border border-[#E5E5E5] mb-6 divide-y divide-[#E5E5E5]">
-        <div id="checkout-cart-items"></div>
-      </div>
+      <div id="checkout-cart-summary" class="hidden bg-stone-50 border border-[#E5E5E5] px-4 py-3 mb-6 space-y-2"></div>
 
       <form id="checkout-form" class="space-y-4">
         <div>
@@ -419,63 +420,40 @@
           </div>
         </div>
 
-        <!-- ---------------- MODE DE PAIEMENT ---------------- -->
-        <div class="border-t border-[#E5E5E5] pt-4">
-          <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">MODE DE PAIEMENT</p>
-          <div class="space-y-2">
-            <label class="payment-option flex items-center gap-3 border border-black px-4 py-3 cursor-pointer">
-              <input type="radio" name="payment-method" id="pm-cod" value="cod" checked class="accent-black">
-              <span class="flex-1">
-                <span class="block text-sm font-medium"><i class="fa-solid fa-truck-fast mr-2 text-[#C5A880]"></i>Paiement à la livraison</span>
-                <span class="block text-[11px] text-[#6B6B6B] mt-0.5">Payez en espèces à la réception du colis</span>
-              </span>
+        <div class="pt-2">
+          <p class="text-xs tracked-sm text-[#6B6B6B] mb-2">MODE DE PAIEMENT</p>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="payment-option border border-black px-3 py-3 text-xs tracked-sm text-center cursor-pointer flex flex-col items-center gap-1.5">
+              <input type="radio" name="payment_method" value="cod" checked class="sr-only">
+              <i class="fa-solid fa-truck-fast"></i>
+              PAIEMENT À LA LIVRAISON
             </label>
-            <label class="payment-option flex items-center gap-3 border border-[#E5E5E5] px-4 py-3 cursor-pointer">
-              <input type="radio" name="payment-method" id="pm-card" value="card" class="accent-black">
-              <span class="flex-1">
-                <span class="block text-sm font-medium"><i class="fa-regular fa-credit-card mr-2 text-[#C5A880]"></i>Carte bancaire</span>
-                <span class="block text-[11px] text-[#6B6B6B] mt-0.5">Paiement sécurisé en ligne via Stripe</span>
-              </span>
-              <span class="flex gap-1 text-lg text-[#6B6B6B]"><i class="fa-brands fa-cc-visa"></i><i class="fa-brands fa-cc-mastercard"></i></span>
+            <label class="payment-option border border-[#E5E5E5] px-3 py-3 text-xs tracked-sm text-center cursor-pointer flex flex-col items-center gap-1.5">
+              <input type="radio" name="payment_method" value="card" class="sr-only">
+              <i class="fa-regular fa-credit-card"></i>
+              CARTE BANCAIRE
             </label>
           </div>
 
-          <!-- Champs carte bancaire (Stripe Elements séparés) — visibles seulement si "Carte bancaire" est choisi -->
-          <div id="card-payment-fields" class="hidden mt-4 border border-[#E5E5E5] p-4 space-y-3.5">
-            <div class="flex items-center justify-between">
-              <p class="text-xs tracked-sm text-[#6B6B6B]">DÉTAILS DE LA CARTE</p>
-              <div class="flex items-center gap-1.5 text-xl text-[#6B6B6B]">
-                <i class="fa-brands fa-cc-visa"></i>
-                <i class="fa-brands fa-cc-mastercard"></i>
-                <i class="fa-brands fa-cc-amex"></i>
-                <i class="fa-brands fa-cc-discover"></i>
-              </div>
-            </div>
-
+          <div id="card-fields" class="hidden mt-4 space-y-3 border border-[#E5E5E5] p-4">
+            <p class="text-[11px] text-[#6B6B6B]"><i class="fa-solid fa-lock mr-1"></i>Démonstration — aucune donnée de carte n'est enregistrée ni transmise.</p>
             <div>
-              <input id="input-card-name" type="text" placeholder="Nom sur la carte" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3 text-sm focus:border-black outline-none transition-colors">
+              <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">NOM SUR LA CARTE</label>
+              <input id="card-name" type="text" placeholder="Ex. SALMA BENNANI" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
             </div>
-
             <div>
-              <!-- Stripe.js monte ici le numéro de carte -->
-              <div id="card-number-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
+              <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">NUMÉRO DE CARTE</label>
+              <input id="card-number" type="text" inputmode="numeric" maxlength="19" placeholder="0000 0000 0000 0000" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
             </div>
-
             <div class="grid grid-cols-2 gap-3">
-              <!-- Stripe.js monte ici la date d'expiration -->
-              <div id="card-expiry-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
-              <!-- Stripe.js monte ici le CVV -->
-              <div id="card-cvc-element" class="w-full border border-[#E5E5E5] rounded-full px-4 py-3.5 bg-white"></div>
-            </div>
-
-            <p id="card-errors" class="hidden text-[11px] text-red-600"></p>
-
-            <div class="text-center pt-1">
-              <i class="fa-solid fa-lock text-[#6B6B6B]"></i>
-              <p class="text-[11px] text-[#6B6B6B] mt-1">
-                Vos moyens de paiement sont enregistrés et stockés en toute sécurité.<br>
-                <a href="#" class="text-[#C5A880] hover:underline">Conditions et politique de confidentialité applicables.</a>
-              </p>
+              <div>
+                <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">EXPIRATION</label>
+                <input id="card-expiry" type="text" maxlength="5" placeholder="MM/AA" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">CVC</label>
+                <input id="card-cvc" type="text" inputmode="numeric" maxlength="4" placeholder="123" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+              </div>
             </div>
           </div>
         </div>
@@ -485,7 +463,7 @@
           <span id="checkout-total" class="text-lg font-medium">— DH</span>
         </div>
 
-        <button type="submit" id="btn-submit-checkout" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors mt-2">
+        <button type="submit" class="w-full bg-black text-white py-4 text-sm tracked-sm hover:bg-[#111111]/90 transition-colors mt-2">
           CONFIRMER LA COMMANDE
         </button>
         <p id="checkout-payment-note" class="text-[11px] text-center text-[#6B6B6B]">Paiement à la livraison — aucune carte requise</p>
@@ -608,6 +586,9 @@
       <button id="tab-btn-products" class="admin-tab-btn px-5 py-3.5 text-xs tracked-sm border-b-2 border-transparent text-[#6B6B6B]">
         <i class="fa-solid fa-box-open mr-2"></i>PRODUITS
       </button>
+      <button id="tab-btn-banners" class="admin-tab-btn px-5 py-3.5 text-xs tracked-sm border-b-2 border-transparent text-[#6B6B6B]">
+        <i class="fa-solid fa-images mr-2"></i>BANNIÈRES
+      </button>
     </div>
   </div>
 
@@ -638,7 +619,6 @@
             <th class="px-4 py-3">VILLE</th>
             <th class="px-4 py-3">ADRESSE</th>
             <th class="px-4 py-3">PRODUIT</th>
-            <th class="px-4 py-3">PAIEMENT</th>
             <th class="px-4 py-3">TOTAL</th>
             <th class="px-4 py-3">STATUT</th>
             <th class="px-4 py-3 text-center">ACTION</th>
@@ -709,6 +689,50 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ TAB: BANNERS ============ -->
+  <div id="admin-tab-banners" class="hidden max-w-7xl mx-auto px-5 sm:px-8 py-8">
+    <div class="grid lg:grid-cols-3 gap-8">
+
+      <!-- Add banner form -->
+      <div class="lg:col-span-1">
+        <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">AJOUTER UNE BANNIÈRE</p>
+        <form id="banner-form" class="border border-[#E5E5E5] p-5 space-y-4">
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (RECOMMANDÉ ~1600×450px)</label>
+            <input id="input-banner-image" type="file" accept="image/*" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+            <img id="banner-image-preview" class="hidden mt-2 w-full aspect-[16/5] object-cover border border-[#E5E5E5]" alt="Aperçu">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">TITRE (FACULTATIF)</label>
+            <input id="input-banner-title" type="text" placeholder="Ex. Nouvelle Collection" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">SOUS-TITRE (FACULTATIF)</label>
+            <input id="input-banner-subtitle" type="text" placeholder="Ex. Livraison offerte cette semaine" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">TEXTE DU BOUTON (FACULTATIF)</label>
+            <input id="input-banner-button" type="text" placeholder="Ex. Découvrir" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">LIEN DU BOUTON (FACULTATIF)</label>
+            <input id="input-banner-link" type="text" placeholder="Ex. #routine ou https://..." class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+          </div>
+          <button type="submit" class="w-full bg-black text-white py-3 text-xs tracked-sm hover:bg-[#111111]/90 transition-colors">
+            <i class="fa-solid fa-plus mr-2"></i>AJOUTER LA BANNIÈRE
+          </button>
+        </form>
+      </div>
+
+      <!-- Banner list -->
+      <div class="lg:col-span-2">
+        <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">BANNIÈRES ACTIVES (<span id="admin-banners-count">0</span>)</p>
+        <div id="admin-banners-list" class="space-y-4"></div>
+        <p id="banners-empty" class="hidden text-center text-sm text-[#6B6B6B] py-14 border border-[#E5E5E5]">Aucune bannière pour le moment. La page d'accueil affichera directement le produit.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ TOAST ============ -->
@@ -722,72 +746,18 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
-  const SUPABASE_URL = https://uhlhkaitrxqmknhsvekh.supabase.co";
+  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* ---------------- STRIPE CONFIG ---------------- */
-  // ⚠️ عوّض بمفتاحك العمومي (Publishable key) من Stripe Dashboard → Developers → API keys
-  const STRIPE_PUBLISHABLE_KEY = "pk_test_VOTRE_CLE_PUBLIQUE_STRIPE";
-  // ⚠️ رابط الـ backend ديالك (Supabase Edge Function مثلا) اللي كيخلق PaymentIntent
-  //    ما يمكنش نخلقو PaymentIntent مباشرة من المتصفح لأن هذا كيتطلب المفتاح السري (Secret key)
-  //    اللي خطير بزاف يتحط فالكود ديال الموقع. خاصك تصاوب Edge Function صغيرة، شوف المثال فأسفل الملف.
-  const STRIPE_CREATE_INTENT_ENDPOINT = "https://VOTRE-PROJET.functions.supabase.co/create-payment-intent";
-  let stripe = null;
-  let stripeCardNumber = null;
-  let stripeCardExpiry = null;
-  let stripeCardCvc = null;
-  if (window.Stripe && STRIPE_PUBLISHABLE_KEY && !STRIPE_PUBLISHABLE_KEY.includes('VOTRE_CLE')) {
-    stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-  }
-
-  /*
-   * ==================================================================================
-   *  إعداد Stripe و Supabase — اللي خاصك تديرو باش الدفع بالبطاقة يخدم فعلا
-   * ==================================================================================
-   *
-   * 1) فـ Supabase → SQL Editor، زيد هاد الأعمدة لجدول "orders" :
-   *
-   *    alter table orders add column items jsonb;
-   *    alter table orders add column payment_method text default 'cod';
-   *    alter table orders add column payment_status text default 'a_la_livraison';
-   *    alter table orders add column stripe_payment_intent_id text;
-   *
-   * 2) الدفع بالبطاقة كيتطلب "Secret key" ديال Stripe، وهاد المفتاح ما ينحطش أبدا
-   *    فكود الموقع (المتصفح) لأنه خطير. خاصك تصاوب دالة صغيرة فالسيرفر (Supabase Edge
-   *    Function) اللي كتخلق PaymentIntent وترجع client_secret للمتصفح. مثال:
-   *
-   *    // supabase/functions/create-payment-intent/index.ts
-   *    import Stripe from "https://esm.sh/stripe@14?target=deno";
-   *    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
-   *    Deno.serve(async (req) => {
-   *      const { amount, currency } = await req.json();
-   *      const intent = await stripe.paymentIntents.create({
-   *        amount: Math.round(amount * 100), // بالسنتيمات
-   *        currency: currency || "mad",
-   *      });
-   *      return new Response(JSON.stringify({ client_secret: intent.client_secret }), {
-   *        headers: { "Content-Type": "application/json" },
-   *      });
-   *    });
-   *
-   *    بعد نشرها (supabase functions deploy create-payment-intent) عوّض
-   *    STRIPE_CREATE_INTENT_ENDPOINT فأعلاه برابط الدالة ديالك، و STRIPE_PUBLISHABLE_KEY
-   *    بالمفتاح العمومي (pk_...) ديالك.
-   *
-   * 3) حيت Stripe كيتطلب حساب مفعّل بالمغرب أو خارجو، تأكد قبل ما تفعّلو فالإنتاج أن
-   *    حسابك يقدر يقبض بالدرهم المغربي (MAD)، أو اختار عملة أخرى مدعومة.
-   *
-   * حتى توفر هاد الإعدادات، خيار "Carte bancaire" غادي يبان للزبون ولكن غادي يعطيه
-   * رسالة واضحة بأن الدفع بالبطاقة ماشي مفعّل بعد، وخيار "Paiement à la livraison"
-   * غادي يخدم بشكل عادي فكل الحالات.
-   */
-
   /* ---------------- STATE ---------------- */
-  let cart = [];          // panier : [{ key, id, variantId, name, unitPrice, qty, image }]
-  let orders = [];        // toutes les commandes (vue admin)
-  let myOrders = [];      // commandes du client connecté
-  let products = [];      // chargés depuis Supabase
+  let cart = JSON.parse(localStorage.getItem('flowa_cart_items') || '[]'); // [{ key, name, unitPrice, qty, image }]
+  let orders = [];       // toutes les commandes (vue admin)
+  let myOrders = [];     // commandes du client connecté
+  let products = [];     // chargés depuis Supabase
+  let banners = [];      // bannières/pub du carousel d'accueil
+  let bannerIndex = 0;
+  let bannerAutoplayTimer = null;
   let excludeProductId = null; // إلا كنا فصفحة تفاصيل منتج، نخبيوه من "Complétez votre routine" ونحصرو فـ 4 آخرين
 
   let currentUser = null;  // session utilisateur Supabase (ou null si invité)
@@ -796,124 +766,46 @@
   let selectedFormat = { format: 'gel', price: 249, label: 'Gel Apaisant 50ml' };
   let qtyMain = 1;
   let qtyCheckout = 1;
-  let currentCheckoutItem = null;   // mode "achat direct" : { name, unitPrice }
-  let checkoutMode = 'single';      // 'single' (Commander maintenant) أو 'cart' (Confirmer depuis le panier)
-  let selectedPaymentMethod = 'cod'; // 'cod' أو 'card'
-
-  try {
-    cart = JSON.parse(localStorage.getItem('flowa_cart') || '[]');
-    if (!Array.isArray(cart)) cart = [];
-  } catch (e) { cart = []; }
+  let currentCheckoutItem = null; // { name, unitPrice }
+  let checkoutMode = 'single'; // 'single' (commande directe) أو 'cart' (من السلة)
 
   /* ---------------- HELPERS ---------------- */
   const $ = (id) => document.getElementById(id);
   const money = (n) => n.toLocaleString('fr-FR') + ' DH';
 
-  /* ---------------- PANIER (CART) ---------------- */
-  function saveCart() { localStorage.setItem('flowa_cart', JSON.stringify(cart)); }
+  /* ---------------- PANIER ---------------- */
+  function saveCartStorage() { localStorage.setItem('flowa_cart_items', JSON.stringify(cart)); }
+  function cartItemCount() { return cart.reduce((s, i) => s + i.qty, 0); }
+  function cartTotal() { return cart.reduce((s, i) => s + i.unitPrice * i.qty, 0); }
 
-  function cartTotalQty() { return cart.reduce((sum, it) => sum + it.qty, 0); }
-  function cartTotalPrice() { return cart.reduce((sum, it) => sum + it.unitPrice * it.qty, 0); }
-
-  function updateCartBadge() { $('cart-badge').textContent = cartTotalQty(); }
-
-  // يزيد منتوج للپانييه، أو يزيد الكمية إلا كان موجود من قبل (نفس المنتوج + نفس الخيار)
-  function addToCart({ key, id, variantId, name, unitPrice, qty, image }) {
-    const existing = cart.find(it => it.key === key);
+  function addToCart({ key, name, unitPrice, qty, image }) {
+    const existing = cart.find(i => i.key === key);
     if (existing) {
       existing.qty = Math.min(existing.qty + qty, 5);
     } else {
-      cart.push({ key, id, variantId: variantId || null, name, unitPrice, qty: Math.min(qty, 5), image: image || null });
+      cart.push({ key, name, unitPrice, qty: Math.min(Math.max(qty, 1), 5), image: image || null });
     }
-    saveCart();
+    saveCartStorage();
     updateCartBadge();
-    showToast('AJOUTÉ AU PANIER');
   }
 
   function removeFromCart(key) {
-    cart = cart.filter(it => it.key !== key);
-    saveCart();
+    cart = cart.filter(i => i.key !== key);
+    saveCartStorage();
     updateCartBadge();
-    renderCart();
+    renderCartDrawer();
   }
 
-  function changeCartQty(key, delta) {
-    const item = cart.find(it => it.key === key);
+  function setCartQty(key, qty) {
+    const item = cart.find(i => i.key === key);
     if (!item) return;
-    item.qty = Math.max(1, Math.min(5, item.qty + delta));
-    saveCart();
+    item.qty = Math.max(1, Math.min(qty, 5));
+    saveCartStorage();
     updateCartBadge();
-    renderCart();
+    renderCartDrawer();
   }
 
-  function renderCart() {
-    const list = $('cart-items-list');
-    const empty = $('cart-empty');
-    const footer = $('cart-footer');
-
-    if (cart.length === 0) {
-      list.innerHTML = '';
-      list.classList.add('hidden');
-      empty.classList.remove('hidden');
-      footer.classList.add('hidden');
-      return;
-    }
-    list.classList.remove('hidden');
-    empty.classList.add('hidden');
-    footer.classList.remove('hidden');
-
-    list.innerHTML = cart.map(it => `
-      <div class="flex items-center gap-3" data-cart-key="${escapeHtml(it.key)}">
-        <div class="w-16 h-16 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center overflow-hidden">
-          ${it.image
-            ? `<img src="${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="w-full h-full object-cover">`
-            : `<i class="fa-solid fa-spa text-[#C5A880] text-xl"></i>`}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">${escapeHtml(it.name)}</p>
-          <p class="text-xs text-[#6B6B6B] mt-0.5">${money(it.unitPrice)}</p>
-          <div class="inline-flex items-center border border-[#E5E5E5] mt-2">
-            <button class="btn-cart-qty-minus w-7 h-7 hover:bg-stone-50 text-xs" data-key="${escapeHtml(it.key)}" aria-label="Diminuer">−</button>
-            <span class="w-7 h-7 flex items-center justify-center text-xs border-x border-[#E5E5E5]">${it.qty}</span>
-            <button class="btn-cart-qty-plus w-7 h-7 hover:bg-stone-50 text-xs" data-key="${escapeHtml(it.key)}" aria-label="Augmenter">+</button>
-          </div>
-        </div>
-        <div class="text-right shrink-0">
-          <p class="text-sm font-medium">${money(it.unitPrice * it.qty)}</p>
-          <button class="btn-cart-remove text-[11px] text-[#6B6B6B] hover:text-red-600 mt-2" data-key="${escapeHtml(it.key)}">
-            <i class="fa-regular fa-trash-can mr-1"></i>Supprimer
-          </button>
-        </div>
-      </div>
-    `).join('');
-
-    $('cart-subtotal').textContent = money(cartTotalPrice());
-
-    document.querySelectorAll('.btn-cart-qty-plus').forEach(b => b.addEventListener('click', () => changeCartQty(b.getAttribute('data-key'), 1)));
-    document.querySelectorAll('.btn-cart-qty-minus').forEach(b => b.addEventListener('click', () => changeCartQty(b.getAttribute('data-key'), -1)));
-    document.querySelectorAll('.btn-cart-remove').forEach(b => b.addEventListener('click', () => removeFromCart(b.getAttribute('data-key'))));
-  }
-
-  function openCart() {
-    renderCart();
-    $('modal-cart').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeCart() {
-    $('modal-cart').classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-
-  $('btn-cart').addEventListener('click', openCart);
-  $('btn-close-cart').addEventListener('click', closeCart);
-  $('btn-cart-continue').addEventListener('click', closeCart);
-  $('modal-cart').addEventListener('click', (e) => { if (e.target === $('modal-cart')) closeCart(); });
-
-  $('btn-cart-checkout').addEventListener('click', () => {
-    if (cart.length === 0) return;
-    closeCart();
-    openCheckoutFromCart();
-  });
+  function updateCartBadge() { $('cart-badge').textContent = cartItemCount(); }
 
   function showToast(text) {
     const t = $('toast');
@@ -927,6 +819,76 @@
     const n = Math.floor(100000 + Math.random() * 900000);
     return 'FLW-' + n;
   }
+
+  /* ---------------- CART DRAWER ---------------- */
+  function renderCartDrawer() {
+    const list = $('cart-items-list');
+    if (cart.length === 0) {
+      list.innerHTML = '';
+      $('cart-empty').classList.remove('hidden');
+      $('cart-footer').classList.add('hidden');
+      return;
+    }
+    $('cart-empty').classList.add('hidden');
+    $('cart-footer').classList.remove('hidden');
+
+    list.innerHTML = cart.map(item => `
+      <div class="flex gap-3 border border-[#E5E5E5] p-3">
+        <div class="w-16 h-16 shrink-0 bg-stone-50 border border-[#E5E5E5] flex items-center justify-center overflow-hidden">
+          ${item.image
+            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover">`
+            : `<i class="fa-regular fa-image text-lg text-[#C5A880]"></i>`}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium leading-snug truncate">${escapeHtml(item.name)}</p>
+          <p class="text-xs text-[#6B6B6B] mt-0.5">${money(item.unitPrice)} / unité</p>
+          <div class="flex items-center justify-between mt-2">
+            <div class="inline-flex items-center border border-[#E5E5E5]">
+              <button class="btn-cart-qty-minus w-7 h-7 hover:bg-stone-50 text-sm" data-key="${item.key}" aria-label="Diminuer">−</button>
+              <span class="w-7 h-7 flex items-center justify-center text-xs">${item.qty}</span>
+              <button class="btn-cart-qty-plus w-7 h-7 hover:bg-stone-50 text-sm" data-key="${item.key}" aria-label="Augmenter">+</button>
+            </div>
+            <span class="text-sm font-medium">${money(item.unitPrice * item.qty)}</span>
+          </div>
+        </div>
+        <button class="btn-cart-remove text-[#6B6B6B] hover:text-red-600 shrink-0" data-key="${item.key}" aria-label="Retirer">
+          <i class="fa-regular fa-trash-can"></i>
+        </button>
+      </div>
+    `).join('');
+
+    $('cart-subtotal').textContent = money(cartTotal());
+
+    document.querySelectorAll('.btn-cart-qty-minus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = cart.find(i => i.key === btn.getAttribute('data-key'));
+        if (!item) return;
+        if (item.qty <= 1) { removeFromCart(item.key); return; }
+        setCartQty(item.key, item.qty - 1);
+      });
+    });
+    document.querySelectorAll('.btn-cart-qty-plus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = cart.find(i => i.key === btn.getAttribute('data-key'));
+        if (item) setCartQty(item.key, item.qty + 1);
+      });
+    });
+    document.querySelectorAll('.btn-cart-remove').forEach(btn => {
+      btn.addEventListener('click', () => removeFromCart(btn.getAttribute('data-key')));
+    });
+  }
+
+  $('btn-open-cart').addEventListener('click', () => {
+    renderCartDrawer();
+    $('modal-cart').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  });
+  function closeCart() {
+    $('modal-cart').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  $('btn-close-cart').addEventListener('click', closeCart);
+  $('modal-cart').addEventListener('click', (e) => { if (e.target === $('modal-cart')) closeCart(); });
 
   function validMoroccanPhone(phone) {
     const cleaned = phone.replace(/[\s.-]/g, '');
@@ -1009,9 +971,12 @@
           <span class="font-medium">${escapeHtml(o.ref)}</span>
           <span class="text-[#6B6B6B]">${new Date(o.created_at).toLocaleDateString('fr-FR')}</span>
         </div>
-        <p class="text-sm mt-1">${escapeHtml(o.product)} × ${o.qty}</p>
+        <div class="text-sm mt-1 text-[#6B6B6B] space-y-0.5">
+          ${(o.items || [{ name: o.product, qty: o.qty }]).map(i => `<p>${escapeHtml(i.name)} × ${i.qty}</p>`).join('')}
+        </div>
         <div class="flex justify-between items-center mt-2">
           <span class="text-xs px-2 py-1 border border-[#E5E5E5] tracked-sm">${escapeHtml(o.status)}</span>
+          <span class="text-[11px] text-[#6B6B6B]"><i class="fa-solid ${o.payment_method === 'card' ? 'fa-credit-card' : 'fa-truck-fast'} mr-1"></i>${o.payment_method === 'card' ? 'Carte' : 'À la livraison'}</span>
           <span class="font-medium">${money(o.total)}</span>
         </div>
       </div>
@@ -1094,17 +1059,16 @@
     chevron.classList.toggle('rotate-180');
   });
 
-  /* ---------------- ADD TO CART (produit vedette en haut de page) ---------------- */
+  /* ---------------- ADD TO CART ---------------- */
   $('btn-add-cart').addEventListener('click', () => {
     addToCart({
       key: 'hero-' + selectedFormat.format,
-      id: 'hero',
-      variantId: selectedFormat.format,
       name: selectedFormat.label,
       unitPrice: selectedFormat.price,
       qty: qtyMain,
       image: null,
     });
+    showToast('AJOUTÉ AU PANIER');
   });
 
   /* ---------------- ROUTINE GRID ---------------- */
@@ -1151,19 +1115,17 @@
     document.querySelectorAll('.btn-add-cart-routine').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = btn.getAttribute('data-id');
-        const p = products.find(pr => pr.id === id);
-        if (!p) return;
-        const variant = (p.variants && p.variants.length) ? p.variants[0] : null;
+        const product = products.find(pr => pr.id === btn.getAttribute('data-id'));
+        if (!product) return;
+        const unitPrice = (product.variants && product.variants.length) ? product.variants[0].price : product.price;
         addToCart({
-          key: 'p-' + id + '-' + (variant ? variant.id : 'base'),
-          id,
-          variantId: variant ? variant.id : null,
-          name: variant ? `${p.name} — ${variant.label}` : p.name,
-          unitPrice: variant ? variant.price : p.price,
+          key: product.id + ':base',
+          name: product.name,
+          unitPrice,
           qty: 1,
-          image: p.image_url || null,
+          image: product.image_url,
         });
+        showToast('AJOUTÉ AU PANIER');
       });
     });
   }
@@ -1188,6 +1150,75 @@
     }
   }
   loadProducts();
+
+  /* ---------------- BANNER CAROUSEL ---------------- */
+  async function loadBanners() {
+    const { data, error } = await supabase
+      .from('banners')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    banners = (!error && data) ? data : [];
+    bannerIndex = 0;
+    renderCarousel();
+  }
+
+  function renderCarousel() {
+    const wrap = $('banner-carousel-wrap');
+    const track = $('banner-carousel');
+    const dots = $('banner-dots');
+
+    if (banners.length === 0) {
+      wrap.classList.add('hidden');
+      clearInterval(bannerAutoplayTimer);
+      return;
+    }
+    wrap.classList.remove('hidden');
+
+    track.innerHTML = `
+      <div id="banner-track" class="flex h-full transition-transform duration-500 ease-out" style="width:${banners.length * 100}%; transform: translateX(-${bannerIndex * (100 / banners.length)}%)">
+        ${banners.map(b => `
+          <div class="relative h-full shrink-0" style="width:${100 / banners.length}%">
+            <img src="${escapeHtml(b.image_url)}" alt="${escapeHtml(b.title || '')}" class="w-full h-full object-cover">
+            ${(b.title || b.subtitle || b.button_text) ? `
+              <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent flex flex-col justify-end sm:justify-center items-start px-6 sm:px-14 pb-6 sm:pb-0">
+                ${b.title ? `<h2 class="text-white text-lg sm:text-3xl font-medium max-w-md leading-snug">${escapeHtml(b.title)}</h2>` : ''}
+                ${b.subtitle ? `<p class="text-white/90 text-xs sm:text-sm mt-1.5 max-w-xs">${escapeHtml(b.subtitle)}</p>` : ''}
+                ${b.button_text ? `<a href="${escapeHtml(b.link_url || '#')}" class="inline-block bg-white text-black text-xs tracked-sm px-5 py-2.5 mt-4 hover:bg-[#C5A880] hover:text-white transition-colors">${escapeHtml(b.button_text)}</a>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    dots.innerHTML = banners.map((_, i) => `
+      <button class="banner-dot w-1.5 h-1.5 rounded-full transition-colors ${i === bannerIndex ? 'bg-black' : 'bg-[#E5E5E5]'}" data-i="${i}" aria-label="Aller à la diapositive ${i + 1}"></button>
+    `).join('');
+    document.querySelectorAll('.banner-dot').forEach(dot => {
+      dot.addEventListener('click', () => goToBanner(parseInt(dot.getAttribute('data-i'), 10)));
+    });
+
+    const showArrows = banners.length > 1;
+    $('btn-banner-prev').classList.toggle('sm:flex', showArrows);
+    $('btn-banner-next').classList.toggle('sm:flex', showArrows);
+
+    resetBannerAutoplay();
+  }
+
+  function goToBanner(i) {
+    bannerIndex = (i + banners.length) % banners.length;
+    renderCarousel();
+  }
+  $('btn-banner-prev').addEventListener('click', () => goToBanner(bannerIndex - 1));
+  $('btn-banner-next').addEventListener('click', () => goToBanner(bannerIndex + 1));
+
+  function resetBannerAutoplay() {
+    clearInterval(bannerAutoplayTimer);
+    if (banners.length > 1) {
+      bannerAutoplayTimer = setInterval(() => goToBanner(bannerIndex + 1), 6000);
+    }
+  }
+  loadBanners();
 
   /* ---------------- PRODUCT DETAIL VIEW ---------------- */
   let detailProduct = null;
@@ -1304,33 +1335,18 @@
 
   $('btn-add-cart-detail').addEventListener('click', () => {
     if (!detailProduct) return;
-    const unitPrice = currentDetailUnitPrice();
-    const name = detailVariant ? `${detailProduct.name} — ${detailVariant.label}` : detailProduct.name;
+    const label = detailVariant ? `${detailProduct.name} — ${detailVariant.label}` : detailProduct.name;
     addToCart({
-      key: 'p-' + detailProduct.id + '-' + (detailVariant ? detailVariant.id : 'base'),
-      id: detailProduct.id,
-      variantId: detailVariant ? detailVariant.id : null,
-      name,
-      unitPrice,
+      key: detailProduct.id + ':' + (detailVariant ? detailVariant.id : 'base'),
+      name: label,
+      unitPrice: currentDetailUnitPrice(),
       qty: qtyDetail,
-      image: detailProduct.image_url || null,
+      image: detailProduct.image_url,
     });
+    showToast('AJOUTÉ AU PANIER');
   });
 
   /* ---------------- CHECKOUT MODAL ---------------- */
-  function resetPaymentUI() {
-    selectedPaymentMethod = 'cod';
-    $('pm-cod').checked = true;
-    $('pm-card').checked = false;
-    document.querySelectorAll('.payment-option').forEach(l => l.classList.remove('border-black'));
-    document.querySelectorAll('.payment-option')[0].classList.add('border-black');
-    $('card-payment-fields').classList.add('hidden');
-    $('checkout-payment-note').textContent = 'Paiement à la livraison — aucune carte requise';
-    $('card-errors').classList.add('hidden');
-    $('input-card-name').value = '';
-  }
-
-  // Mode "Commander maintenant" : un seul article, quantité modifiable dans le modal
   function openCheckout(name, unitPrice) {
     checkoutMode = 'single';
     currentCheckoutItem = { name, unitPrice };
@@ -1339,40 +1355,36 @@
     $('checkout-qty-display').textContent = qtyCheckout;
     $('checkout-product-name').textContent = name;
     $('checkout-product-price').textContent = money(unitPrice);
-    $('checkout-single-item').classList.remove('hidden');
+    $('checkout-single-summary').classList.remove('hidden');
     $('checkout-cart-summary').classList.add('hidden');
     $('checkout-qty-row').classList.remove('hidden');
     refreshCheckoutTotal();
-    $('checkout-form').reset();
-    $('phone-error').classList.add('hidden');
-    resetPaymentUI();
-    $('modal-checkout').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    resetCheckoutForm();
   }
 
-  // Mode "panier" : plusieurs articles, quantités déjà fixées dans le panier
-  function openCheckoutFromCart() {
+  function openCartCheckout() {
     if (cart.length === 0) return;
     checkoutMode = 'cart';
-    currentCheckoutItem = null;
-    $('checkout-single-item').classList.add('hidden');
-    $('checkout-cart-summary').classList.remove('hidden');
+    $('checkout-single-summary').classList.add('hidden');
     $('checkout-qty-row').classList.add('hidden');
-
-    $('checkout-cart-items').innerHTML = cart.map(it => `
-      <div class="flex items-center justify-between px-4 py-3">
-        <div>
-          <p class="text-sm font-medium">${escapeHtml(it.name)}</p>
-          <p class="text-xs text-[#6B6B6B] mt-0.5">Quantité : ${it.qty}</p>
-        </div>
-        <p class="text-sm font-medium">${money(it.unitPrice * it.qty)}</p>
+    const summary = $('checkout-cart-summary');
+    summary.classList.remove('hidden');
+    summary.innerHTML = cart.map(item => `
+      <div class="flex items-center justify-between text-sm">
+        <span class="truncate pr-3">${escapeHtml(item.name)} <span class="text-[#6B6B6B]">× ${item.qty}</span></span>
+        <span class="font-medium shrink-0">${money(item.unitPrice * item.qty)}</span>
       </div>
     `).join('');
+    $('checkout-total').textContent = money(cartTotal());
+    resetCheckoutForm();
+    closeCart();
+  }
 
-    refreshCheckoutTotal();
+  function resetCheckoutForm() {
     $('checkout-form').reset();
     $('phone-error').classList.add('hidden');
-    resetPaymentUI();
+    document.querySelectorAll('input[name="payment_method"]').forEach(r => { r.checked = (r.value === 'cod'); });
+    updatePaymentUI();
     $('modal-checkout').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
@@ -1383,14 +1395,9 @@
   }
 
   function refreshCheckoutTotal() {
-    let total = 0;
-    if (checkoutMode === 'cart') {
-      total = cartTotalPrice();
-    } else if (currentCheckoutItem) {
-      total = currentCheckoutItem.unitPrice * qtyCheckout;
-      $('checkout-qty-display').textContent = qtyCheckout;
-    }
-    $('checkout-total').textContent = money(total);
+    if (!currentCheckoutItem) return;
+    $('checkout-total').textContent = money(currentCheckoutItem.unitPrice * qtyCheckout);
+    $('checkout-qty-display').textContent = qtyCheckout;
   }
 
   $('btn-order-main').addEventListener('click', () => {
@@ -1399,6 +1406,8 @@
     $('qty-checkout').textContent = qtyCheckout;
     refreshCheckoutTotal();
   });
+
+  $('btn-cart-checkout').addEventListener('click', openCartCheckout);
 
   $('btn-close-checkout').addEventListener('click', closeCheckout);
   $('modal-checkout').addEventListener('click', (e) => { if (e.target === $('modal-checkout')) closeCheckout(); });
@@ -1414,56 +1423,34 @@
     refreshCheckoutTotal();
   });
 
-  /* ---------------- MODE DE PAIEMENT (COD / CARTE) ---------------- */
-  function ensureStripeCardMounted() {
-    if (!stripe) return; // المفتاح العمومي ديال Stripe ماشي معمر بعد
-    if (stripeCardNumber) return;
-    const elements = stripe.elements();
-    const style = { base: { fontFamily: 'Jost, sans-serif', fontSize: '14px', color: '#111111', '::placeholder': { color: '#9CA3AF' } } };
-
-    // ثلاثة خانات منفصلين (Numéro / MM-AA / CVV) بحال التصميم المطلوب
-    stripeCardNumber = elements.create('cardNumber', { style, placeholder: 'Card number' });
-    stripeCardExpiry = elements.create('cardExpiry', { style });
-    stripeCardCvc = elements.create('cardCvc', { style, placeholder: 'CVV' });
-
-    stripeCardNumber.mount('#card-number-element');
-    stripeCardExpiry.mount('#card-expiry-element');
-    stripeCardCvc.mount('#card-cvc-element');
-
-    const handleCardError = (event) => {
-      const errBox = $('card-errors');
-      if (event.error) {
-        errBox.textContent = event.error.message;
-        errBox.classList.remove('hidden');
-      } else {
-        errBox.classList.add('hidden');
-      }
-    };
-    stripeCardNumber.on('change', handleCardError);
-    stripeCardExpiry.on('change', handleCardError);
-    stripeCardCvc.on('change', handleCardError);
-  }
-
-  document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      selectedPaymentMethod = radio.value;
-      document.querySelectorAll('.payment-option').forEach(l => l.classList.remove('border-black'));
-      radio.closest('.payment-option').classList.add('border-black');
-
-      if (selectedPaymentMethod === 'card') {
-        $('card-payment-fields').classList.remove('hidden');
-        $('checkout-payment-note').textContent = 'Paiement sécurisé par carte bancaire via Stripe';
-        if (!stripe) {
-          $('card-errors').textContent = "Le paiement par carte n'est pas encore configuré sur ce site (clé Stripe manquante).";
-          $('card-errors').classList.remove('hidden');
-        } else {
-          ensureStripeCardMounted();
-        }
-      } else {
-        $('card-payment-fields').classList.add('hidden');
-        $('checkout-payment-note').textContent = 'Paiement à la livraison — aucune carte requise';
-      }
+  /* ---------------- MODE DE PAIEMENT ---------------- */
+  function updatePaymentUI() {
+    const method = document.querySelector('input[name="payment_method"]:checked').value;
+    document.querySelectorAll('.payment-option').forEach(label => {
+      const isSelected = label.querySelector('input').value === method;
+      label.classList.toggle('border-black', isSelected);
+      label.classList.toggle('border-[#E5E5E5]', !isSelected);
     });
+    $('card-fields').classList.toggle('hidden', method !== 'card');
+    $('checkout-payment-note').textContent = method === 'card'
+      ? 'Démonstration — aucune donnée de carte n\'est enregistrée'
+      : 'Paiement à la livraison — aucune carte requise';
+  }
+  document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+    r.addEventListener('change', updatePaymentUI);
+  });
+
+  // تنسيق بسيط لخانات البطاقة (ديكور بصري فقط، ما كيتسجلش شي حاجة)
+  $('card-number').addEventListener('input', () => {
+    $('card-number').value = $('card-number').value.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  });
+  $('card-expiry').addEventListener('input', () => {
+    let v = $('card-expiry').value.replace(/\D/g, '').slice(0, 4);
+    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    $('card-expiry').value = v;
+  });
+  $('card-cvc').addEventListener('input', () => {
+    $('card-cvc').value = $('card-cvc').value.replace(/\D/g, '').slice(0, 4);
   });
 
   /* ---------------- SUBMIT ORDER ---------------- */
@@ -1474,6 +1461,7 @@
     const phone = $('input-phone').value.trim();
     const city = $('input-city').value.trim();
     const address = $('input-address').value.trim();
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
     if (!validMoroccanPhone(phone)) {
       $('phone-error').classList.remove('hidden');
@@ -1484,83 +1472,37 @@
 
     if (!name || !city || !address) return;
 
-    // بناء لائحة المنتوجات والمجموع حسب الوضعية : "Commander maintenant" (منتوج واحد) أو "Panier" (بزاف)
-    let items, total, qtySummary, productSummary;
+    // ملاحظة: خانات البطاقة (الرقم، الاسم، الصلاحية، CVC) ديكور بصري فقط للعرض التوضيحي —
+    // ما كيتسجلش أي منها فقاعدة البيانات، غير طريقة الدفع المختارة (cod / card).
+
+    let orderPayload;
     if (checkoutMode === 'cart') {
-      items = cart.map(it => ({ name: it.name, unit_price: it.unitPrice, qty: it.qty }));
-      total = cartTotalPrice();
-      qtySummary = cartTotalQty();
-      productSummary = cart.length === 1 ? cart[0].name : `${cart.length} articles`;
+      orderPayload = {
+        product: cart.map(i => `${i.name} ×${i.qty}`).join(', '),
+        qty: cartItemCount(),
+        total: cartTotal(),
+        items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.unitPrice })),
+      };
     } else {
-      items = [{ name: currentCheckoutItem.name, unit_price: currentCheckoutItem.unitPrice, qty: qtyCheckout }];
-      total = currentCheckoutItem.unitPrice * qtyCheckout;
-      qtySummary = qtyCheckout;
-      productSummary = currentCheckoutItem.name;
+      orderPayload = {
+        product: currentCheckoutItem.name,
+        qty: qtyCheckout,
+        total: currentCheckoutItem.unitPrice * qtyCheckout,
+        items: [{ name: currentCheckoutItem.name, qty: qtyCheckout, price: currentCheckoutItem.unitPrice }],
+      };
     }
 
-    const submitBtn = $('btn-submit-checkout');
+    const submitBtn = $('checkout-form').querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'ENVOI EN COURS…';
-
-    let stripePaymentIntentId = null;
-    let paymentStatus = 'a_la_livraison';
-
-    /* ---- PAIEMENT PAR CARTE (STRIPE) ---- */
-    if (selectedPaymentMethod === 'card') {
-      if (!stripe) {
-        alert("Le paiement par carte n'est pas encore configuré sur ce site (clé Stripe manquante). Choisissez « Paiement à la livraison », ou contactez l'administrateur du site.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'CONFIRMER LA COMMANDE';
-        return;
-      }
-      try {
-        // 1) نطلبو من الـ backend (Edge Function) يخلق PaymentIntent ويرجع client_secret
-        //    ⚠️ هذا الجزء غادي يخدم غير مورا ما تصاوب الـ backend (شوف المثال فأسفل الملف)
-        const resp = await fetch(STRIPE_CREATE_INTENT_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: total, currency: 'mad' }),
-        });
-        if (!resp.ok) throw new Error('backend_not_ready');
-        const { client_secret } = await resp.json();
-
-        // 2) نأكدو الدفع بالبطاقة عبر Stripe.js (البيانات البنكية كتمشي مباشرة لـ Stripe، ماشي لسيرفر ديالنا)
-        const result = await stripe.confirmCardPayment(client_secret, {
-          payment_method: {
-            card: stripeCardNumber,
-            billing_details: { name: $('input-card-name').value.trim() || name },
-          },
-        });
-        if (result.error) {
-          $('card-errors').textContent = result.error.message;
-          $('card-errors').classList.remove('hidden');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'CONFIRMER LA COMMANDE';
-          return;
-        }
-        stripePaymentIntentId = result.paymentIntent.id;
-        paymentStatus = 'payee';
-      } catch (err) {
-        console.error(err);
-        alert("Le paiement par carte n'a pas pu être traité (configuration backend Stripe manquante). Choisissez « Paiement à la livraison », ou terminez la configuration Stripe (voir commentaires dans le code).");
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'CONFIRMER LA COMMANDE';
-        return;
-      }
-    }
 
     const order = {
       ref: genOrderRef(),
       user_id: currentUser ? currentUser.id : null, // lié au compte Google si connecté, sinon commande "invité"
       name, phone, city, address,
-      product: productSummary,
-      qty: qtySummary,
-      total,
+      payment_method: paymentMethod,
       status: 'En attente',
-      items,                          // ⚠️ يتطلب عمود jsonb اسمو "items" فجدول orders
-      payment_method: selectedPaymentMethod,       // ⚠️ يتطلب عمود text اسمو "payment_method" ('cod' | 'card')
-      payment_status: paymentStatus,               // ⚠️ يتطلب عمود text اسمو "payment_status"
-      stripe_payment_intent_id: stripePaymentIntentId, // ⚠️ يتطلب عمود text (nullable)
+      ...orderPayload,
     };
 
     const { data, error } = await supabase.from('orders').insert(order).select().single();
@@ -1574,10 +1516,9 @@
       return;
     }
 
-    // نفرغو الپانييه غير إلا الطلبية جاية من الپانييه
     if (checkoutMode === 'cart') {
       cart = [];
-      saveCart();
+      saveCartStorage();
       updateCartBadge();
     }
 
@@ -1635,20 +1576,22 @@
 
   /* ---------------- ADMIN TABS ---------------- */
   function switchAdminTab(tab) {
-    const isOrders = tab === 'orders';
-    $('admin-tab-orders').classList.toggle('hidden', !isOrders);
-    $('admin-tab-products').classList.toggle('hidden', isOrders);
+    $('admin-tab-orders').classList.toggle('hidden', tab !== 'orders');
+    $('admin-tab-products').classList.toggle('hidden', tab !== 'products');
+    $('admin-tab-banners').classList.toggle('hidden', tab !== 'banners');
 
-    $('tab-btn-orders').classList.toggle('border-black', isOrders);
-    $('tab-btn-orders').classList.toggle('border-transparent', !isOrders);
-    $('tab-btn-orders').classList.toggle('text-[#6B6B6B]', !isOrders);
+    ['orders', 'products', 'banners'].forEach(t => {
+      const active = t === tab;
+      $('tab-btn-' + t).classList.toggle('border-black', active);
+      $('tab-btn-' + t).classList.toggle('border-transparent', !active);
+      $('tab-btn-' + t).classList.toggle('text-[#6B6B6B]', !active);
+    });
 
-    $('tab-btn-products').classList.toggle('border-black', !isOrders);
-    $('tab-btn-products').classList.toggle('border-transparent', isOrders);
-    $('tab-btn-products').classList.toggle('text-[#6B6B6B]', isOrders);
+    if (tab === 'banners') renderBannersAdmin();
   }
   $('tab-btn-orders').addEventListener('click', () => switchAdminTab('orders'));
   $('tab-btn-products').addEventListener('click', () => switchAdminTab('products'));
+  $('tab-btn-banners').addEventListener('click', () => switchAdminTab('banners'));
 
   /* ---------------- ADMIN: PRODUCTS ---------------- */
   function renderProductsAdmin() {
@@ -1747,6 +1690,126 @@
       });
     });
   }
+
+  /* ---------------- ADMIN: BANNERS ---------------- */
+  function renderBannersAdmin() {
+    const list = $('admin-banners-list');
+    $('admin-banners-count').textContent = banners.length;
+
+    if (banners.length === 0) {
+      list.innerHTML = '';
+      $('banners-empty').classList.remove('hidden');
+      return;
+    }
+    $('banners-empty').classList.add('hidden');
+
+    list.innerHTML = banners.map((b, i) => `
+      <div class="border border-[#E5E5E5] p-3 flex items-center gap-4">
+        <div class="w-28 h-16 shrink-0 bg-stone-50 border border-[#E5E5E5] overflow-hidden">
+          <img src="${escapeHtml(b.image_url)}" alt="${escapeHtml(b.title || '')}" class="w-full h-full object-cover">
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">${escapeHtml(b.title || '(sans titre)')}</p>
+          <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(b.subtitle || '')}</p>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button class="btn-banner-up p-2 text-[#6B6B6B] hover:text-black disabled:opacity-20" data-id="${b.id}" ${i === 0 ? 'disabled' : ''} aria-label="Monter"><i class="fa-solid fa-arrow-up"></i></button>
+          <button class="btn-banner-down p-2 text-[#6B6B6B] hover:text-black disabled:opacity-20" data-id="${b.id}" ${i === banners.length - 1 ? 'disabled' : ''} aria-label="Descendre"><i class="fa-solid fa-arrow-down"></i></button>
+          <button class="btn-banner-delete p-2 text-[#6B6B6B] hover:text-red-600" data-id="${b.id}" aria-label="Supprimer"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.btn-banner-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const b = banners.find(x => x.id === btn.getAttribute('data-id'));
+        if (!confirm('Supprimer cette bannière ?')) return;
+        const { error } = await supabase.from('banners').delete().eq('id', btn.getAttribute('data-id'));
+        if (error) { alert('Erreur lors de la suppression.'); console.error(error); return; }
+        if (b && b.image_url) {
+          const idx = b.image_url.indexOf('/banners/');
+          if (idx !== -1) supabase.storage.from('banners').remove([b.image_url.slice(idx + '/banners/'.length)]).catch(() => {});
+        }
+        await loadBanners();
+        renderBannersAdmin();
+      });
+    });
+
+    async function swapOrder(idA, idB) {
+      const a = banners.find(x => x.id === idA);
+      const b = banners.find(x => x.id === idB);
+      if (!a || !b) return;
+      await supabase.from('banners').update({ sort_order: b.sort_order }).eq('id', a.id);
+      await supabase.from('banners').update({ sort_order: a.sort_order }).eq('id', b.id);
+      await loadBanners();
+      renderBannersAdmin();
+    }
+    document.querySelectorAll('.btn-banner-up').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = banners.findIndex(x => x.id === btn.getAttribute('data-id'));
+        if (i > 0) swapOrder(banners[i].id, banners[i - 1].id);
+      });
+    });
+    document.querySelectorAll('.btn-banner-down').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = banners.findIndex(x => x.id === btn.getAttribute('data-id'));
+        if (i < banners.length - 1) swapOrder(banners[i].id, banners[i + 1].id);
+      });
+    });
+  }
+
+  $('input-banner-image').addEventListener('change', () => {
+    const file = $('input-banner-image').files[0];
+    const preview = $('banner-image-preview');
+    if (!file) { preview.classList.add('hidden'); return; }
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove('hidden');
+  });
+
+  $('banner-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const file = $('input-banner-image').files[0];
+    const title = $('input-banner-title').value.trim();
+    const subtitle = $('input-banner-subtitle').value.trim();
+    const button_text = $('input-banner-button').value.trim();
+    const link_url = $('input-banner-link').value.trim();
+
+    if (!file) return;
+
+    const submitBtn = $('banner-form').querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'AJOUT EN COURS…';
+
+    const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error: uploadError } = await supabase.storage.from('banners').upload(path, file);
+    if (uploadError) {
+      alert("Erreur lors de l'envoi de l'image.");
+      console.error(uploadError);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LA BANNIÈRE';
+      return;
+    }
+    const image_url = supabase.storage.from('banners').getPublicUrl(path).data.publicUrl;
+    const maxOrder = banners.length ? Math.max(...banners.map(b => b.sort_order)) : -1;
+
+    const { error } = await supabase.from('banners').insert({
+      image_url,
+      title: title || null,
+      subtitle: subtitle || null,
+      button_text: button_text || null,
+      link_url: link_url || null,
+      sort_order: maxOrder + 1,
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LA BANNIÈRE';
+    if (error) { alert("Erreur lors de l'ajout de la bannière."); console.error(error); return; }
+
+    await loadBanners();
+    renderBannersAdmin();
+    $('banner-form').reset();
+    $('banner-image-preview').classList.add('hidden');
+  });
 
   /* ---------------- ADMIN: EDIT PRODUCT ---------------- */
   let editOriginalVariantIds = [];
@@ -2043,11 +2106,11 @@
         </td>
         <td class="px-4 py-3">${escapeHtml(o.city)}</td>
         <td class="px-4 py-3 max-w-[200px]"><span class="text-[#6B6B6B]">${escapeHtml(o.address)}</span></td>
-        <td class="px-4 py-3">${escapeHtml(o.product)} <span class="text-[#6B6B6B]">×${o.qty}</span></td>
-        <td class="px-4 py-3">
-          ${o.payment_method === 'card'
-            ? `<span class="text-[11px] px-2 py-1 border border-[#E5E5E5] tracked-sm"><i class="fa-regular fa-credit-card mr-1 text-[#C5A880]"></i>Carte${o.payment_status === 'payee' ? ' ✓' : ''}</span>`
-            : `<span class="text-[11px] px-2 py-1 border border-[#E5E5E5] tracked-sm"><i class="fa-solid fa-truck-fast mr-1 text-[#C5A880]"></i>Livraison</span>`}
+        <td class="px-4 py-3 max-w-[220px]">
+          <div class="space-y-0.5">
+            ${(o.items || [{ name: o.product, qty: o.qty }]).map(i => `<p>${escapeHtml(i.name)} <span class="text-[#6B6B6B]">×${i.qty}</span></p>`).join('')}
+          </div>
+          <p class="text-[10px] text-[#6B6B6B] mt-1"><i class="fa-solid ${o.payment_method === 'card' ? 'fa-credit-card' : 'fa-truck-fast'} mr-1"></i>${o.payment_method === 'card' ? 'Carte bancaire' : 'Paiement à la livraison'}</p>
         </td>
         <td class="px-4 py-3 font-medium">${money(o.total)}</td>
         <td class="px-4 py-3">
