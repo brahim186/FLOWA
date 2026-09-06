@@ -396,6 +396,42 @@
   </div>
 </div>
 
+<!-- ============ EDIT PRODUCT MODAL ============ -->
+<div id="modal-edit-product" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="rise-in bg-white w-full sm:max-w-md sm:border sm:border-[#E5E5E5] max-h-[92vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-[#E5E5E5]">
+      <p class="tracked-sm text-sm font-medium">MODIFIER LE PRODUIT</p>
+      <button id="btn-close-edit-product" class="text-lg text-[#6B6B6B] hover:text-black" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="edit-product-form" class="px-6 py-5 space-y-4">
+      <input type="hidden" id="edit-product-id">
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">NOM DU PRODUIT</label>
+        <input id="edit-product-name" type="text" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COURTE</label>
+        <input id="edit-product-desc" type="text" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PRIX DE BASE (DH)</label>
+        <input id="edit-product-price" type="number" min="1" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none">
+        <p class="text-[10px] text-[#6B6B6B] mt-1">Utilisé seulement si le produit n'a aucune option.</p>
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTO DU PRODUIT</label>
+        <img id="edit-product-current-image" class="hidden w-24 h-24 object-cover border border-[#E5E5E5] mb-2" alt="Photo actuelle">
+        <input id="edit-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+        <p class="text-[10px] text-[#6B6B6B] mt-1">Laissez vide pour garder la photo actuelle.</p>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="btn-cancel-edit-product" class="flex-1 border border-[#E5E5E5] py-3 text-xs tracked-sm hover:bg-stone-50">ANNULER</button>
+        <button type="submit" class="flex-1 bg-black text-white py-3 text-xs tracked-sm hover:bg-[#111111]/90">ENREGISTRER</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ============ ADMIN DASHBOARD VIEW ============ -->
 <div id="view-admin" class="hidden min-h-screen bg-white">
   <div class="border-b border-[#E5E5E5]">
@@ -1030,6 +1066,9 @@
             <p class="text-[11px] text-[#6B6B6B] truncate">${escapeHtml(p.description || '')}</p>
             <p class="text-sm font-medium mt-1">${p.variants && p.variants.length ? 'Options ci-dessous' : money(p.price)}</p>
           </div>
+          <button data-id="${p.id}" class="btn-edit-product text-[#6B6B6B] hover:text-black transition-colors shrink-0" aria-label="Modifier le produit">
+            <i class="fa-regular fa-pen-to-square"></i>
+          </button>
           <button data-id="${p.id}" class="btn-delete-product text-[#6B6B6B] hover:text-red-600 transition-colors shrink-0" aria-label="Supprimer le produit">
             <i class="fa-regular fa-trash-can"></i>
           </button>
@@ -1076,6 +1115,10 @@
       });
     });
 
+    document.querySelectorAll('.btn-edit-product').forEach(btn => {
+      btn.addEventListener('click', () => openEditProduct(btn.getAttribute('data-id')));
+    });
+
     document.querySelectorAll('.btn-delete-product').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
@@ -1094,6 +1137,79 @@
       });
     });
   }
+
+  /* ---------------- ADMIN: EDIT PRODUCT ---------------- */
+  function openEditProduct(id) {
+    const p = products.find(pr => pr.id === id);
+    if (!p) return;
+    $('edit-product-id').value = p.id;
+    $('edit-product-name').value = p.name;
+    $('edit-product-desc').value = p.description || '';
+    $('edit-product-price').value = p.price;
+    $('edit-product-image').value = '';
+    if (p.image_url) {
+      $('edit-product-current-image').src = p.image_url;
+      $('edit-product-current-image').classList.remove('hidden');
+    } else {
+      $('edit-product-current-image').classList.add('hidden');
+    }
+    $('modal-edit-product').classList.remove('hidden');
+  }
+
+  function closeEditProduct() { $('modal-edit-product').classList.add('hidden'); }
+  $('btn-close-edit-product').addEventListener('click', closeEditProduct);
+  $('btn-cancel-edit-product').addEventListener('click', closeEditProduct);
+  $('modal-edit-product').addEventListener('click', (e) => { if (e.target === $('modal-edit-product')) closeEditProduct(); });
+
+  $('edit-product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = $('edit-product-id').value;
+    const oldProduct = products.find(p => p.id === id);
+    const name = $('edit-product-name').value.trim();
+    const description = $('edit-product-desc').value.trim();
+    const price = parseInt($('edit-product-price').value, 10);
+    const file = $('edit-product-image').files[0];
+
+    if (!name || !price || price <= 0) return;
+
+    const submitBtn = $('edit-product-form').querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'ENREGISTREMENT…';
+
+    const updates = { name, description, price };
+
+    if (file) {
+      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabase.storage.from('products').upload(path, file);
+      if (uploadError) {
+        alert("Erreur lors de l'envoi de la nouvelle image.");
+        console.error(uploadError);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'ENREGISTRER';
+        return;
+      }
+      updates.image_url = supabase.storage.from('products').getPublicUrl(path).data.publicUrl;
+    }
+
+    const { error } = await supabase.from('products').update(updates).eq('id', id);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'ENREGISTRER';
+    if (error) { alert("Erreur lors de l'enregistrement."); console.error(error); return; }
+
+    // نحيدو الصورة القديمة من التخزين إذا تبدلات بواحدة جديدة
+    if (file && oldProduct && oldProduct.image_url) {
+      const idx = oldProduct.image_url.indexOf('/products/');
+      if (idx !== -1) {
+        const oldPath = oldProduct.image_url.slice(idx + '/products/'.length);
+        supabase.storage.from('products').remove([oldPath]).catch(() => {});
+      }
+    }
+
+    closeEditProduct();
+    await loadProducts();
+    showToast('PRODUIT MODIFIÉ');
+  });
 
   $('input-product-image').addEventListener('change', () => {
     const file = $('input-product-image').files[0];
