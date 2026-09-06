@@ -205,7 +205,10 @@
       </div>
     </div>
   </section>
+</main>
 
+<!-- ============ SECTIONS COMMUNES (visibles sur l'accueil ET la page produit) ============ -->
+<div id="site-common-sections">
   <!-- ============ ROUTINE SECTION ============ -->
   <section id="routine" class="bg-stone-50/60 border-y border-[#E5E5E5] py-14 sm:py-20">
     <div class="max-w-7xl mx-auto px-5 sm:px-8">
@@ -253,7 +256,7 @@
       © 2026 FLOWA. Tous droits réservés.
     </div>
   </footer>
-</main>
+</div>
 
 <!-- ============ PRODUCT DETAIL VIEW ============ -->
 <div id="view-product-detail" class="hidden bg-white">
@@ -616,7 +619,7 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
-  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co"; 
+  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -755,6 +758,16 @@
     a.addEventListener('click', () => $('mobile-menu-panel').classList.add('hidden'));
   });
 
+  /* ---------------- NAV LINKS: رجوع للصفحة الرئيسية إذا كنا فصفحة تفاصيل منتج ---------------- */
+  document.querySelectorAll('header nav a[href^="#"], .mobile-link[href^="#"]').forEach(a => {
+    a.addEventListener('click', () => {
+      if (!$('view-product-detail').classList.contains('hidden')) {
+        $('view-product-detail').classList.add('hidden');
+        $('view-store').classList.remove('hidden');
+      }
+    });
+  });
+
   /* ---------------- GALLERY ---------------- */
   document.querySelectorAll('.gallery-thumb').forEach(thumb => {
     thumb.addEventListener('click', () => {
@@ -868,6 +881,7 @@
     });
   }
 
+  let initialRouteChecked = false;
   async function loadProducts() {
     const { data, error } = await supabase
       .from('products')
@@ -876,6 +890,15 @@
     products = (!error && data) ? data.map(p => ({ ...p, variants: (p.product_variants || []).sort((a, b) => a.price - b.price) })) : [];
     renderRoutineGrid();
     if (!$('view-admin').classList.contains('hidden')) renderProductsAdmin();
+
+    // إعادة فتح نفس صفحة المنتج تلقائياً إذا الرابط كان فيه (مثلا بعد Actualiser/F5)
+    if (!initialRouteChecked) {
+      initialRouteChecked = true;
+      const match = window.location.hash.match(/^#p-(.+)$/);
+      if (match && products.find(p => p.id === match[1])) {
+        openProductDetail(match[1]);
+      }
+    }
   }
   loadProducts();
 
@@ -954,12 +977,15 @@
 
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.remove('hidden');
+    history.replaceState(null, '', '#p-' + p.id);
     window.scrollTo(0, 0);
   }
 
   $('btn-back-store-detail').addEventListener('click', () => {
     $('view-product-detail').classList.add('hidden');
     $('view-store').classList.remove('hidden');
+    history.replaceState(null, '', window.location.pathname);
+    window.scrollTo(0, 0);
   });
 
   $('btn-qty-minus-detail').addEventListener('click', () => {
@@ -1126,6 +1152,7 @@
   function openAdmin() {
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.add('hidden');
+    $('site-common-sections').classList.add('hidden');
     document.querySelector('header').classList.add('hidden');
     $('view-admin').classList.remove('hidden');
     switchAdminTab('orders');
@@ -1499,6 +1526,8 @@
     $('view-admin').classList.add('hidden');
     document.querySelector('header').classList.remove('hidden');
     $('view-store').classList.remove('hidden');
+    $('site-common-sections').classList.remove('hidden');
+    history.replaceState(null, '', window.location.pathname);
   });
 
   async function loadOrdersAdmin() {
