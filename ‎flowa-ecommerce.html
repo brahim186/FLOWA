@@ -301,6 +301,30 @@
         <p class="text-xs text-[#6B6B6B] mt-4 flex items-center gap-2">
           <i class="fa-solid fa-truck-fast"></i> Livraison partout au Maroc — Paiement à la livraison
         </p>
+
+        <div id="detail-accordion-wrap" class="hidden mt-10 border-t border-[#E5E5E5]">
+          <div id="detail-acc-desc-item" class="hidden border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="detail-acc-desc">
+              DESCRIPTION
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="detail-acc-desc" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed"></div>
+          </div>
+          <div id="detail-acc-ingr-item" class="hidden border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="detail-acc-ingr">
+              INGRÉDIENTS
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="detail-acc-ingr" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed"></div>
+          </div>
+          <div id="detail-acc-usage-item" class="hidden border-b border-[#E5E5E5]">
+            <button class="accordion-header w-full flex items-center justify-between py-4 text-sm tracked-sm" data-target="detail-acc-usage">
+              CONSEILS D'UTILISATION
+              <i class="fa-solid fa-chevron-down chevron text-xs"></i>
+            </button>
+            <div id="detail-acc-usage" class="hidden pb-5 text-sm text-[#6B6B6B] leading-relaxed"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -430,6 +454,18 @@
         <p class="text-[10px] text-[#6B6B6B] mt-1">Laissez vide pour garder la photo actuelle.</p>
       </div>
       <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COMPLÈTE (FACULTATIF)</label>
+        <textarea id="edit-product-full-desc" rows="3" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">INGRÉDIENTS (FACULTATIF)</label>
+        <textarea id="edit-product-ingredients" rows="3" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">CONSEILS D'UTILISATION (FACULTATIF)</label>
+        <textarea id="edit-product-usage" rows="3" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+      </div>
+      <div>
         <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">OPTIONS (TAILLE / CAPACITÉ)</label>
         <div id="edit-variant-rows" class="space-y-2"></div>
         <button type="button" id="btn-add-edit-variant-row" class="mt-2 text-xs text-[#C5A880] hover:underline">
@@ -541,6 +577,18 @@
             <input id="input-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
             <img id="product-image-preview" class="hidden mt-2 w-24 h-24 object-cover border border-[#E5E5E5]" alt="Aperçu">
           </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COMPLÈTE (FACULTATIF)</label>
+            <textarea id="input-product-full-desc" rows="3" placeholder="Texte affiché dans l'onglet DESCRIPTION de la page produit" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">INGRÉDIENTS (FACULTATIF)</label>
+            <textarea id="input-product-ingredients" rows="3" placeholder="Ex. Extrait d'armoise, aloe vera bio..." class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">CONSEILS D'UTILISATION (FACULTATIF)</label>
+            <textarea id="input-product-usage" rows="3" placeholder="Ex. Appliquer matin et soir sur..." class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none resize-none"></textarea>
+          </div>
           <button type="submit" class="w-full bg-black text-white py-3 text-xs tracked-sm hover:bg-[#111111]/90 transition-colors">
             <i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT
           </button>
@@ -568,8 +616,8 @@
 
   /* ---------------- SUPABASE CONFIG ---------------- */
   // ⚠️ عوّض هذين المتغيرين بمعطيات مشروعك على Supabase (Project Settings → API)
- const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co"; 
- const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
+  const SUPABASE_URL = "https://uhlhkaitrxqmknhsvekh.supabase.co"; 
+  const SUPABASE_ANON_KEY = "sb_publishable_BGQ1x44Z3rqkcuCTXEXyeg_I8KM-znQ";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ---------------- STATE ---------------- */
@@ -752,13 +800,13 @@
   });
 
   /* ---------------- ACCORDION ---------------- */
-  document.querySelectorAll('.accordion-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const target = $(header.getAttribute('data-target'));
-      const chevron = header.querySelector('.chevron');
-      target.classList.toggle('hidden');
-      chevron.classList.toggle('rotate-180');
-    });
+  document.addEventListener('click', (e) => {
+    const header = e.target.closest('.accordion-header');
+    if (!header) return;
+    const target = $(header.getAttribute('data-target'));
+    const chevron = header.querySelector('.chevron');
+    target.classList.toggle('hidden');
+    chevron.classList.toggle('rotate-180');
   });
 
   /* ---------------- ADD TO CART ---------------- */
@@ -885,6 +933,25 @@
     }
 
     updateDetailTotal();
+
+    // ---- Accordion: DESCRIPTION / INGRÉDIENTS / CONSEILS ----
+    const accItems = [
+      { item: 'detail-acc-desc-item', content: 'detail-acc-desc', value: p.full_description },
+      { item: 'detail-acc-ingr-item', content: 'detail-acc-ingr', value: p.ingredients },
+      { item: 'detail-acc-usage-item', content: 'detail-acc-usage', value: p.usage_tips },
+    ];
+    let anyAccVisible = false;
+    accItems.forEach(({ item, content, value }) => {
+      const hasValue = value && value.trim();
+      $(item).classList.toggle('hidden', !hasValue);
+      $(content).textContent = hasValue ? value : '';
+      $(content).classList.add('hidden'); // يبدا مسدود
+      const chevron = $(item).querySelector('.chevron');
+      if (chevron) chevron.classList.remove('rotate-180');
+      if (hasValue) anyAccVisible = true;
+    });
+    $('detail-accordion-wrap').classList.toggle('hidden', !anyAccVisible);
+
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.remove('hidden');
     window.scrollTo(0, 0);
@@ -1207,6 +1274,9 @@
     $('edit-product-id').value = p.id;
     $('edit-product-name').value = p.name;
     $('edit-product-desc').value = p.description || '';
+    $('edit-product-full-desc').value = p.full_description || '';
+    $('edit-product-ingredients').value = p.ingredients || '';
+    $('edit-product-usage').value = p.usage_tips || '';
     $('edit-product-price').value = p.price;
     $('edit-product-image').value = '';
     if (p.image_url) {
@@ -1234,6 +1304,9 @@
     const oldProduct = products.find(p => p.id === id);
     const name = $('edit-product-name').value.trim();
     const description = $('edit-product-desc').value.trim();
+    const full_description = $('edit-product-full-desc').value.trim();
+    const ingredients = $('edit-product-ingredients').value.trim();
+    const usage_tips = $('edit-product-usage').value.trim();
     const price = parseInt($('edit-product-price').value, 10);
     const file = $('edit-product-image').files[0];
 
@@ -1243,7 +1316,12 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'ENREGISTREMENT…';
 
-    const updates = { name, description, price };
+    const updates = {
+      name, description, price,
+      full_description: full_description || null,
+      ingredients: ingredients || null,
+      usage_tips: usage_tips || null,
+    };
 
     if (file) {
       const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
@@ -1355,6 +1433,9 @@
     e.preventDefault();
     const name = $('input-product-name').value.trim();
     const description = $('input-product-desc').value.trim();
+    const full_description = $('input-product-full-desc').value.trim();
+    const ingredients = $('input-product-ingredients').value.trim();
+    const usage_tips = $('input-product-usage').value.trim();
     const basePrice = parseInt($('input-product-price').value, 10);
     const file = $('input-product-image').files[0];
     const variantRows = collectVariantRows();
@@ -1382,7 +1463,12 @@
     // إذا كاينة خيارات، السعر الأساسي كيبقى أصغر سعر منهم (للعرض فقط فبطاقة المنتج)
     const price = variantRows.length ? Math.min(...variantRows.map(v => v.price)) : basePrice;
 
-    const { data: newProduct, error } = await supabase.from('products').insert({ name, price, description, image_url }).select().single();
+    const { data: newProduct, error } = await supabase.from('products').insert({
+      name, price, description, image_url,
+      full_description: full_description || null,
+      ingredients: ingredients || null,
+      usage_tips: usage_tips || null,
+    }).select().single();
 
     if (error) {
       submitBtn.disabled = false;
