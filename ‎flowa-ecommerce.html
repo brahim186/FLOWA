@@ -338,7 +338,7 @@
         <p class="tracked-sm text-xs text-white/50 mb-3">CONTACT</p>
         <p class="text-white/80"><i class="fa-solid fa-phone mr-2"></i>+212 6 99 43 33 19</p>
         <p class="text-white/80 mt-2"><i class="fa-solid fa-envelope mr-2"></i>contact@Calm and bloom.ma</p>
-        <p class="text-white/80 mt-2"><i class="fa-solid fa-location-dot mr-2"></i>Sidi Taïbi, Kénitra, Maroc</p>
+        <p class="text-white/80 mt-2"><i class="fa-solid fa-location-dot mr-2"></i>Kénitra, Maroc</p>
       </div>
       <div>
         <p class="tracked-sm text-xs text-white/50 mb-3">LIVRAISON</p>
@@ -537,10 +537,10 @@
       </div>
       <div>
         <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTOS DU PRODUIT (5 MAX.)</label>
+        <p class="text-[10px] text-[#6B6B6B] mb-1.5">La 1ère photo (avec l'étoile) sera l'image principale. Utilisez les flèches ← → pour changer l'ordre.</p>
         <div id="edit-product-current-images" class="flex flex-wrap gap-2 mb-2"></div>
         <input id="edit-product-image" type="file" accept="image/*" multiple class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
         <p id="edit-image-hint" class="text-[10px] text-[#6B6B6B] mt-1">Vous pouvez ajouter des photos supplémentaires (5 au total).</p>
-        <div id="edit-product-new-preview" class="hidden mt-2 flex flex-wrap gap-2"></div>
       </div>
       <div>
         <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COMPLÈTE (FACULTATIF)</label>
@@ -667,6 +667,7 @@
           <div>
             <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTOS DU PRODUIT (5 MAX.)</label>
             <input id="input-product-image" type="file" accept="image/*" multiple class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+            <p class="text-[10px] text-[#6B6B6B] mt-1.5">La 1ère photo (avec l'étoile) sera l'image principale. Utilisez les flèches ← → pour changer l'ordre.</p>
             <div id="product-image-preview" class="hidden mt-2 flex flex-wrap gap-2"></div>
           </div>
           <div>
@@ -765,6 +766,7 @@
   let bannerIndex = 0;
   let bannerAutoplayTimer = null;
   let excludeProductId = null; // إلا كنا فصفحة تفاصيل منتج، نخبيوه من "Complétez votre routine" ونحصرو فـ 4 آخرين
+  let newProductFiles = []; // صور منتج جديد (ترتيب قابل للتعديل، أول واحدة = صورة رئيسية)
 
   let currentUser = null;  // session utilisateur Supabase (ou null si invité)
   let isAdmin = false;     // vrai si profiles.is_admin === true pour l'utilisateur connecté
@@ -1885,25 +1887,44 @@
     $('edit-variant-rows').appendChild(createEditVariantRow(null));
   });
 
-  let editKeptImages = []; // الصور الحالية المحتفظ بها (روابط) لمنتج قيد التعديل
+  let editImageItems = []; // [{type:'existing', url} | {type:'new', file}] — قابلة لإعادة الترتيب، أول عنصر = صورة رئيسية
 
   function renderEditImageThumbs() {
     const wrap = $('edit-product-current-images');
-    wrap.innerHTML = editKeptImages.map((url, i) => `
-      <div class="relative w-16 h-16">
-        <img src="${escapeHtml(url)}" class="w-full h-full object-cover border border-[#E5E5E5]">
-        <button type="button" class="btn-remove-existing-image absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white text-[10px] flex items-center justify-center" data-i="${i}" aria-label="Retirer">✕</button>
+    wrap.innerHTML = editImageItems.map((item, i) => `
+      <div class="relative w-16 h-16 group">
+        <img src="${item.type === 'existing' ? escapeHtml(item.url) : URL.createObjectURL(item.file)}" class="w-full h-full object-cover border ${i === 0 ? 'border-[#C5A880] border-2' : 'border-[#E5E5E5]'}">
+        ${i === 0 ? '<span class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#C5A880] text-white text-[10px] flex items-center justify-center"><i class="fa-solid fa-star"></i></span>' : ''}
+        <button type="button" class="btn-remove-edit-image absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white text-[10px] flex items-center justify-center" data-i="${i}" aria-label="Retirer">✕</button>
+        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+          <button type="button" class="btn-move-edit-image-left w-5 h-5 rounded-full bg-white border border-[#E5E5E5] text-[10px] flex items-center justify-center disabled:opacity-30" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Déplacer à gauche"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="btn-move-edit-image-right w-5 h-5 rounded-full bg-white border border-[#E5E5E5] text-[10px] flex items-center justify-center disabled:opacity-30" data-i="${i}" ${i === editImageItems.length - 1 ? 'disabled' : ''} aria-label="Déplacer à droite"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
       </div>
     `).join('');
-    document.querySelectorAll('.btn-remove-existing-image').forEach(btn => {
+    document.querySelectorAll('.btn-remove-edit-image').forEach(btn => {
       btn.addEventListener('click', () => {
-        editKeptImages.splice(parseInt(btn.getAttribute('data-i'), 10), 1);
+        editImageItems.splice(parseInt(btn.getAttribute('data-i'), 10), 1);
         renderEditImageThumbs();
       });
     });
-    $('edit-image-hint').textContent = editKeptImages.length >= 5
+    document.querySelectorAll('.btn-move-edit-image-left').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.getAttribute('data-i'), 10);
+        if (i > 0) [editImageItems[i - 1], editImageItems[i]] = [editImageItems[i], editImageItems[i - 1]];
+        renderEditImageThumbs();
+      });
+    });
+    document.querySelectorAll('.btn-move-edit-image-right').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.getAttribute('data-i'), 10);
+        if (i < editImageItems.length - 1) [editImageItems[i], editImageItems[i + 1]] = [editImageItems[i + 1], editImageItems[i]];
+        renderEditImageThumbs();
+      });
+    });
+    $('edit-image-hint').textContent = editImageItems.length >= 5
       ? 'Limite de 5 photos atteinte. Retirez-en une pour en ajouter une nouvelle.'
-      : `Vous pouvez ajouter ${5 - editKeptImages.length} photo(s) supplémentaire(s).`;
+      : `Vous pouvez ajouter ${5 - editImageItems.length} photo(s) supplémentaire(s).`;
   }
 
   function openEditProduct(id) {
@@ -1917,10 +1938,9 @@
     $('edit-product-usage').value = p.usage_tips || '';
     $('edit-product-price').value = p.price;
     $('edit-product-image').value = '';
-    $('edit-product-new-preview').classList.add('hidden');
-    $('edit-product-new-preview').innerHTML = '';
 
-    editKeptImages = (p.images && p.images.length) ? [...p.images] : (p.image_url ? [p.image_url] : []);
+    const existingUrls = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+    editImageItems = existingUrls.map(url => ({ type: 'existing', url }));
     renderEditImageThumbs();
 
     editOriginalVariantIds = (p.variants || []).map(v => v.id);
@@ -1936,16 +1956,16 @@
   $('modal-edit-product').addEventListener('click', (e) => { if (e.target === $('modal-edit-product')) closeEditProduct(); });
 
   $('edit-product-image').addEventListener('change', () => {
-    const remaining = Math.max(0, 5 - editKeptImages.length);
+    const remaining = Math.max(0, 5 - editImageItems.length);
     let files = Array.from($('edit-product-image').files);
     if (files.length > remaining) {
       alert(`Vous ne pouvez ajouter que ${remaining} photo(s) de plus (limite de 5 au total).`);
       files = files.slice(0, remaining);
     }
-    const preview = $('edit-product-new-preview');
-    if (files.length === 0) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
-    preview.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" class="w-16 h-16 object-cover border border-[#C5A880]">`).join('');
-    preview.classList.remove('hidden');
+    files.forEach(file => editImageItems.push({ type: 'new', file }));
+    $('edit-product-image').value = '';
+    renderEditImageThumbs();
+
   });
 
   $('edit-product-form').addEventListener('submit', async (e) => {
@@ -1958,7 +1978,6 @@
     const ingredients = $('edit-product-ingredients').value.trim();
     const usage_tips = $('edit-product-usage').value.trim();
     const price = parseInt($('edit-product-price').value, 10);
-    const newFiles = Array.from($('edit-product-image').files).slice(0, Math.max(0, 5 - editKeptImages.length));
 
     if (!name || !price || price <= 0) return;
 
@@ -1966,10 +1985,15 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'ENREGISTREMENT…';
 
-    const newImageUrls = [];
-    for (const file of newFiles) {
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const { error: uploadError } = await supabase.storage.from('products').upload(path, file);
+    // نرفعو الصور الجديدة، مع الحفاظ على الترتيب اللي اختاره المستخدم فـ editImageItems
+    const finalImages = [];
+    for (const item of editImageItems.slice(0, 5)) {
+      if (item.type === 'existing') {
+        finalImages.push(item.url);
+        continue;
+      }
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${item.file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabase.storage.from('products').upload(path, item.file);
       if (uploadError) {
         alert("Erreur lors de l'envoi d'une nouvelle image.");
         console.error(uploadError);
@@ -1977,10 +2001,8 @@
         submitBtn.textContent = 'ENREGISTRER';
         return;
       }
-      newImageUrls.push(supabase.storage.from('products').getPublicUrl(path).data.publicUrl);
+      finalImages.push(supabase.storage.from('products').getPublicUrl(path).data.publicUrl);
     }
-
-    const finalImages = [...editKeptImages, ...newImageUrls].slice(0, 5);
 
     const updates = {
       name, description, price,
@@ -2054,16 +2076,53 @@
     showToast('PRODUIT MODIFIÉ');
   });
 
-  $('input-product-image').addEventListener('change', () => {
-    let files = Array.from($('input-product-image').files);
-    if (files.length > 5) {
-      alert('5 photos maximum. Seules les 5 premières seront utilisées.');
-      files = files.slice(0, 5);
-    }
+  function renderNewProductThumbs() {
     const preview = $('product-image-preview');
-    if (files.length === 0) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
-    preview.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" class="w-16 h-16 object-cover border border-[#E5E5E5]">`).join('');
+    if (newProductFiles.length === 0) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+    preview.innerHTML = newProductFiles.map((file, i) => `
+      <div class="relative w-16 h-16">
+        <img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover border ${i === 0 ? 'border-[#C5A880] border-2' : 'border-[#E5E5E5]'}">
+        ${i === 0 ? '<span class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#C5A880] text-white text-[10px] flex items-center justify-center"><i class="fa-solid fa-star"></i></span>' : ''}
+        <button type="button" class="btn-remove-new-product-image absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white text-[10px] flex items-center justify-center" data-i="${i}" aria-label="Retirer">✕</button>
+        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+          <button type="button" class="btn-move-new-product-image-left w-5 h-5 rounded-full bg-white border border-[#E5E5E5] text-[10px] flex items-center justify-center disabled:opacity-30" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Déplacer à gauche"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="btn-move-new-product-image-right w-5 h-5 rounded-full bg-white border border-[#E5E5E5] text-[10px] flex items-center justify-center disabled:opacity-30" data-i="${i}" ${i === newProductFiles.length - 1 ? 'disabled' : ''} aria-label="Déplacer à droite"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    `).join('');
     preview.classList.remove('hidden');
+    document.querySelectorAll('.btn-remove-new-product-image').forEach(btn => {
+      btn.addEventListener('click', () => {
+        newProductFiles.splice(parseInt(btn.getAttribute('data-i'), 10), 1);
+        renderNewProductThumbs();
+      });
+    });
+    document.querySelectorAll('.btn-move-new-product-image-left').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.getAttribute('data-i'), 10);
+        if (i > 0) [newProductFiles[i - 1], newProductFiles[i]] = [newProductFiles[i], newProductFiles[i - 1]];
+        renderNewProductThumbs();
+      });
+    });
+    document.querySelectorAll('.btn-move-new-product-image-right').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.getAttribute('data-i'), 10);
+        if (i < newProductFiles.length - 1) [newProductFiles[i], newProductFiles[i + 1]] = [newProductFiles[i + 1], newProductFiles[i]];
+        renderNewProductThumbs();
+      });
+    });
+  }
+
+  $('input-product-image').addEventListener('change', () => {
+    const remaining = Math.max(0, 5 - newProductFiles.length);
+    let files = Array.from($('input-product-image').files);
+    if (files.length > remaining) {
+      alert(`5 photos maximum. Seules ${remaining} de plus seront ajoutées.`);
+      files = files.slice(0, remaining);
+    }
+    files.forEach(f => newProductFiles.push(f));
+    $('input-product-image').value = '';
+    renderNewProductThumbs();
   });
 
   /* ---------------- VARIANT ROWS BUILDER (form d'ajout) ---------------- */
@@ -2096,7 +2155,7 @@
     const ingredients = $('input-product-ingredients').value.trim();
     const usage_tips = $('input-product-usage').value.trim();
     const basePrice = parseInt($('input-product-price').value, 10);
-    const files = Array.from($('input-product-image').files).slice(0, 5);
+    const files = newProductFiles.slice(0, 5);
     const variantRows = collectVariantRows();
 
     if (!name || !basePrice || basePrice <= 0) return;
@@ -2150,6 +2209,7 @@
 
     await loadProducts();
     $('product-form').reset();
+    newProductFiles = [];
     $('product-image-preview').classList.add('hidden');
     $('product-image-preview').innerHTML = '';
     $('variant-rows').innerHTML = '';
