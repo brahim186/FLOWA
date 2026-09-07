@@ -94,17 +94,21 @@
 <main id="view-store">
 
   <!-- ============ BANNER CAROUSEL ============ -->
-  <section id="banner-carousel-wrap" class="hidden relative">
-    <div id="banner-carousel" class="relative w-full aspect-[21/9] overflow-hidden bg-stone-100">
-      <!-- slides injectés en JS -->
+  <section id="banner-carousel-wrap" class="hidden">
+    <div class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-6 sm:pt-10">
+      <div class="relative">
+        <div id="banner-carousel" class="relative w-full aspect-[2/1] overflow-hidden bg-stone-100">
+          <!-- slides injectés en JS -->
+        </div>
+        <button id="btn-banner-prev" aria-label="Précédent" class="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button id="btn-banner-next" aria-label="Suivant" class="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      <div id="banner-dots" class="flex items-center justify-center gap-2 py-3"></div>
     </div>
-    <button id="btn-banner-prev" aria-label="Précédent" class="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
-      <i class="fa-solid fa-chevron-left"></i>
-    </button>
-    <button id="btn-banner-next" aria-label="Suivant" class="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
-      <i class="fa-solid fa-chevron-right"></i>
-    </button>
-    <div id="banner-dots" class="flex items-center justify-center gap-2 py-3"></div>
   </section>
 
   <!-- ============ PRODUCT DETAIL SECTION (masquée par défaut, non affichée sur l'accueil) ============ -->
@@ -701,9 +705,9 @@
         <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">AJOUTER UNE BANNIÈRE</p>
         <form id="banner-form" class="border border-[#E5E5E5] p-5 space-y-4">
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (FORMAT 21:9 — EX. 2100×900PX)</label>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (FORMAT 1200×600PX — RATIO 2:1)</label>
             <input id="input-banner-image" type="file" accept="image/*" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
-            <img id="banner-image-preview" class="hidden mt-2 w-full aspect-[21/9] object-cover border border-[#E5E5E5]" alt="Aperçu">
+            <img id="banner-image-preview" class="hidden mt-2 w-full max-w-[300px] aspect-[2/1] object-cover border border-[#E5E5E5]" alt="Aperçu">
           </div>
           <div>
             <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">TITRE (FACULTATIF)</label>
