@@ -42,7 +42,7 @@
       <i class="fa-solid fa-bars"></i>
     </button>
 
-    <a href="#" class="text-xl sm:text-2xl font-semibold tracked select-none">Calm and bloom</a>
+    <a href="#" id="btn-logo-home" class="text-xl sm:text-2xl font-semibold tracked select-none cursor-pointer">Calm and bloom</a>
 
     <nav class="hidden md:flex items-center gap-10 text-xs tracked-sm">
       <a href="#routine" class="hover:text-[#C5A880] transition-colors">Nos Produits</a>
@@ -97,7 +97,7 @@
   <section id="banner-carousel-wrap" class="hidden">
     <div class="max-w-[1200px] mx-auto px-5 sm:px-8 pt-6 sm:pt-10">
       <div class="relative">
-        <div id="banner-carousel" class="relative w-full aspect-[2/1] overflow-hidden bg-stone-100">
+        <div id="banner-carousel" class="relative w-full aspect-[3/1] overflow-hidden bg-stone-100">
           <!-- slides injectés en JS -->
         </div>
         <button id="btn-banner-prev" aria-label="Précédent" class="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
@@ -705,9 +705,9 @@
         <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">AJOUTER UNE BANNIÈRE</p>
         <form id="banner-form" class="border border-[#E5E5E5] p-5 space-y-4">
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (FORMAT 1200×600PX — RATIO 2:1)</label>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (FORMAT 1200×400PX — RATIO 3:1)</label>
             <input id="input-banner-image" type="file" accept="image/*" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
-            <img id="banner-image-preview" class="hidden mt-2 w-full max-w-[300px] aspect-[2/1] object-cover border border-[#E5E5E5]" alt="Aperçu">
+            <img id="banner-image-preview" class="hidden mt-2 w-full max-w-[300px] aspect-[3/1] object-cover border border-[#E5E5E5]" alt="Aperçu">
           </div>
           <div>
             <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">TITRE (FACULTATIF)</label>
@@ -778,6 +778,38 @@
   /* ---------------- HELPERS ---------------- */
   const $ = (id) => document.getElementById(id);
   const money = (n) => n.toLocaleString('fr-FR') + ' DH';
+
+  /* ---------------- RETOUR À L'ACCUEIL (زر رجوع عام + شعار Calm and bloom) ---------------- */
+  function goHome() {
+    // fermer toute vue plein écran
+    $('view-product-detail').classList.add('hidden');
+    $('view-admin').classList.add('hidden');
+    $('view-success').classList.add('hidden');
+
+    // ré-afficher la boutique + le header + les sections communes
+    $('view-store').classList.remove('hidden');
+    document.querySelector('header').classList.remove('hidden');
+    $('site-common-sections').classList.remove('hidden');
+
+    // fermer menus / dropdowns / modales éventuellement ouverts
+    $('mobile-menu-panel').classList.add('hidden');
+    $('account-dropdown').classList.add('hidden');
+    if ($('modal-cart')) $('modal-cart').classList.add('hidden');
+    if ($('modal-checkout')) $('modal-checkout').classList.add('hidden');
+    if ($('modal-my-orders')) $('modal-my-orders').classList.add('hidden');
+    if ($('modal-edit-product')) $('modal-edit-product').classList.add('hidden');
+
+    document.body.style.overflow = '';
+    if (typeof excludeProductId !== 'undefined') excludeProductId = null;
+    if (typeof renderRoutineGrid === 'function') renderRoutineGrid();
+
+    history.replaceState(null, '', window.location.pathname);
+    window.scrollTo(0, 0);
+  }
+  $('btn-logo-home').addEventListener('click', (e) => {
+    e.preventDefault();
+    goHome();
+  });
 
   /* ---------------- PANIER ---------------- */
   function saveCartStorage() { localStorage.setItem('Calm and bloom_cart_items', JSON.stringify(cart)); }
@@ -1335,14 +1367,7 @@
     window.scrollTo(0, 0);
   }
 
-  $('btn-back-store-detail').addEventListener('click', () => {
-    $('view-product-detail').classList.add('hidden');
-    $('view-store').classList.remove('hidden');
-    excludeProductId = null;
-    renderRoutineGrid();
-    history.replaceState(null, '', window.location.pathname);
-    window.scrollTo(0, 0);
-  });
+  $('btn-back-store-detail').addEventListener('click', goHome);
 
   $('btn-qty-minus-detail').addEventListener('click', () => {
     qtyDetail = Math.max(qtyDetail - 1, 1);
@@ -1570,10 +1595,7 @@
     window.scrollTo(0, 0);
   }
 
-  $('btn-back-shop').addEventListener('click', () => {
-    $('view-success').classList.add('hidden');
-    document.body.style.overflow = '';
-  });
+  $('btn-back-shop').addEventListener('click', goHome);
 
   /* ---------------- ADMIN ACCESS (GOOGLE + is_admin) ---------------- */
   async function requestAdminAccess() {
@@ -2134,13 +2156,7 @@
     $('input-product-name').focus();
   });
 
-  $('btn-back-store-admin').addEventListener('click', () => {
-    $('view-admin').classList.add('hidden');
-    document.querySelector('header').classList.remove('hidden');
-    $('view-store').classList.remove('hidden');
-    $('site-common-sections').classList.remove('hidden');
-    history.replaceState(null, '', window.location.pathname);
-  });
+  $('btn-back-store-admin').addEventListener('click', goHome);
 
   async function loadOrdersAdmin() {
     const tbody = $('orders-tbody');
