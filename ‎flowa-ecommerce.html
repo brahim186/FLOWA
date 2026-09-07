@@ -781,8 +781,11 @@
   const $ = (id) => document.getElementById(id);
   const money = (n) => n.toLocaleString('fr-FR') + ' DH';
 
+  // état initial de l'historique : la page actuelle = "accueil" (sans changer l'URL affichée)
+  history.replaceState({ view: 'store' }, '', window.location.href);
+
   /* ---------------- RETOUR À L'ACCUEIL (زر رجوع عام + شعار Calm and bloom) ---------------- */
-  function goHome() {
+  function goHome({ push = true } = {}) {
     // fermer toute vue plein écran
     $('view-product-detail').classList.add('hidden');
     $('view-admin').classList.add('hidden');
@@ -805,12 +808,30 @@
     if (typeof excludeProductId !== 'undefined') excludeProductId = null;
     if (typeof renderRoutineGrid === 'function') renderRoutineGrid();
 
-    history.replaceState(null, '', window.location.pathname);
+    const url = window.location.pathname;
+    if (push) history.pushState({ view: 'store' }, '', url);
+    else history.replaceState({ view: 'store' }, '', url);
     window.scrollTo(0, 0);
   }
   $('btn-logo-home').addEventListener('click', (e) => {
     e.preventDefault();
     goHome();
+  });
+
+  /* ---------------- NAVIGATION PAR FLÈCHES DU NAVIGATEUR / BOUTON RETOUR DU TÉLÉPHONE ----------------
+     كل صفحة (منتج، إدارة...) عندها "حالة" فتاريخ المتصفح، فسهم الرجوع ديال الكمبيوتر
+     أو زر/إيماءة الرجوع فالهاتف كيخدمو بحال زر الرجوع اللي كاين فالموقع بالضبط. */
+  window.addEventListener('popstate', (e) => {
+    const state = e.state;
+    if (state && state.view === 'product') {
+      const p = products.find(pr => pr.id === state.id);
+      if (p) { openProductDetail(state.id, { push: false }); return; }
+    }
+    if (state && state.view === 'admin' && isAdmin) {
+      openAdmin({ push: false });
+      return;
+    }
+    goHome({ push: false });
   });
 
   /* ---------------- PANIER ---------------- */
@@ -1041,6 +1062,7 @@
         $('view-store').classList.remove('hidden');
         excludeProductId = null;
         renderRoutineGrid();
+        history.pushState({ view: 'store' }, '', window.location.pathname + a.getAttribute('href'));
       }
     });
   });
@@ -1272,7 +1294,7 @@
     $('detail-total').textContent = money(currentDetailUnitPrice() * qtyDetail);
   }
 
-  function openProductDetail(id) {
+  function openProductDetail(id, { push = true } = {}) {
     const p = products.find(pr => pr.id === id);
     if (!p) return;
     detailProduct = p;
@@ -1365,7 +1387,9 @@
 
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.remove('hidden');
-    history.replaceState(null, '', '#p-' + p.id);
+    const detailUrl = '#p-' + p.id;
+    if (push) history.pushState({ view: 'product', id: p.id }, '', detailUrl);
+    else history.replaceState({ view: 'product', id: p.id }, '', detailUrl);
     window.scrollTo(0, 0);
   }
 
@@ -1619,7 +1643,7 @@
   });
 
   /* ---------------- ADMIN DASHBOARD ---------------- */
-  function openAdmin() {
+  function openAdmin({ push = true } = {}) {
     $('view-store').classList.add('hidden');
     $('view-product-detail').classList.add('hidden');
     $('site-common-sections').classList.add('hidden');
@@ -1628,6 +1652,9 @@
     switchAdminTab('orders');
     loadOrdersAdmin();
     renderProductsAdmin();
+    const adminUrl = '#admin';
+    if (push) history.pushState({ view: 'admin' }, '', adminUrl);
+    else history.replaceState({ view: 'admin' }, '', adminUrl);
     window.scrollTo(0, 0);
   }
 
