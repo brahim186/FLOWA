@@ -95,7 +95,7 @@
 
   <!-- ============ BANNER CAROUSEL ============ -->
   <section id="banner-carousel-wrap" class="hidden relative">
-    <div id="banner-carousel" class="relative w-full h-[220px] sm:h-[340px] md:h-[420px] overflow-hidden bg-stone-100">
+    <div id="banner-carousel" class="relative w-full aspect-[21/9] overflow-hidden bg-stone-100">
       <!-- slides injectés en JS -->
     </div>
     <button id="btn-banner-prev" aria-label="Précédent" class="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white items-center justify-center text-sm shadow">
@@ -232,6 +232,7 @@
     <div class="grid md:grid-cols-2 gap-10 lg:gap-16">
       <div>
         <div id="detail-image-wrap" class="bg-gradient-to-br from-stone-50 to-stone-100 border border-[#E5E5E5] aspect-square flex items-center justify-center overflow-hidden"></div>
+        <div id="detail-thumbs" class="hidden grid grid-cols-5 gap-2 mt-3"></div>
       </div>
       <div class="flex flex-col">
         <p class="tracked-sm text-xs text-[#6B6B6B]">Calm and bloom — BIEN-ÊTRE NATUREL</p>
@@ -531,10 +532,11 @@
         <p class="text-[10px] text-[#6B6B6B] mt-1">Utilisé seulement si le produit n'a aucune option.</p>
       </div>
       <div>
-        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTO DU PRODUIT</label>
-        <img id="edit-product-current-image" class="hidden w-24 h-24 object-cover border border-[#E5E5E5] mb-2" alt="Photo actuelle">
-        <input id="edit-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
-        <p class="text-[10px] text-[#6B6B6B] mt-1">Laissez vide pour garder la photo actuelle.</p>
+        <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTOS DU PRODUIT (5 MAX.)</label>
+        <div id="edit-product-current-images" class="flex flex-wrap gap-2 mb-2"></div>
+        <input id="edit-product-image" type="file" accept="image/*" multiple class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+        <p id="edit-image-hint" class="text-[10px] text-[#6B6B6B] mt-1">Vous pouvez ajouter des photos supplémentaires (5 au total).</p>
+        <div id="edit-product-new-preview" class="hidden mt-2 flex flex-wrap gap-2"></div>
       </div>
       <div>
         <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COMPLÈTE (FACULTATIF)</label>
@@ -659,9 +661,9 @@
             </button>
           </div>
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTO DU PRODUIT</label>
-            <input id="input-product-image" type="file" accept="image/*" class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
-            <img id="product-image-preview" class="hidden mt-2 w-24 h-24 object-cover border border-[#E5E5E5]" alt="Aperçu">
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">PHOTOS DU PRODUIT (5 MAX.)</label>
+            <input id="input-product-image" type="file" accept="image/*" multiple class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
+            <div id="product-image-preview" class="hidden mt-2 flex flex-wrap gap-2"></div>
           </div>
           <div>
             <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">DESCRIPTION COMPLÈTE (FACULTATIF)</label>
@@ -699,9 +701,9 @@
         <p class="text-xs tracked-sm text-[#6B6B6B] mb-3">AJOUTER UNE BANNIÈRE</p>
         <form id="banner-form" class="border border-[#E5E5E5] p-5 space-y-4">
           <div>
-            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (RECOMMANDÉ ~1600×450px)</label>
+            <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">IMAGE (FORMAT 21:9 — EX. 2100×900PX)</label>
             <input id="input-banner-image" type="file" accept="image/*" required class="w-full border border-[#E5E5E5] px-3 py-2.5 text-sm focus:border-black outline-none bg-white file:mr-3 file:border-0 file:bg-black file:text-white file:px-3 file:py-1.5 file:text-xs file:tracked-sm">
-            <img id="banner-image-preview" class="hidden mt-2 w-full aspect-[16/5] object-cover border border-[#E5E5E5]" alt="Aperçu">
+            <img id="banner-image-preview" class="hidden mt-2 w-full aspect-[21/9] object-cover border border-[#E5E5E5]" alt="Aperçu">
           </div>
           <div>
             <label class="block text-[11px] tracked-sm text-[#6B6B6B] mb-1.5">TITRE (FACULTATIF)</label>
@@ -1241,9 +1243,36 @@
 
     $('detail-name').textContent = p.name;
     $('detail-desc').textContent = p.description || '';
-    $('detail-image-wrap').innerHTML = p.image_url
-      ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
-      : `<i class="fa-regular fa-image text-8xl sm:text-9xl text-[#C5A880] opacity-80"></i>`;
+
+    const gallery = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+
+    function setDetailImage(url) {
+      $('detail-image-wrap').innerHTML = url
+        ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover">`
+        : `<i class="fa-regular fa-image text-8xl sm:text-9xl text-[#C5A880] opacity-80"></i>`;
+    }
+    setDetailImage(gallery[0] || null);
+
+    if (gallery.length > 1) {
+      $('detail-thumbs').classList.remove('hidden');
+      $('detail-thumbs').innerHTML = gallery.map((url, i) => `
+        <button class="detail-thumb-btn aspect-square border ${i === 0 ? 'border-black' : 'border-[#E5E5E5]'} overflow-hidden" data-url="${escapeHtml(url)}">
+          <img src="${escapeHtml(url)}" alt="${escapeHtml(p.name)} ${i + 1}" class="w-full h-full object-cover">
+        </button>
+      `).join('');
+      document.querySelectorAll('.detail-thumb-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setDetailImage(btn.getAttribute('data-url'));
+          document.querySelectorAll('.detail-thumb-btn').forEach(b => b.classList.remove('border-black'));
+          document.querySelectorAll('.detail-thumb-btn').forEach(b => b.classList.add('border-[#E5E5E5]'));
+          btn.classList.remove('border-[#E5E5E5]');
+          btn.classList.add('border-black');
+        });
+      });
+    } else {
+      $('detail-thumbs').classList.add('hidden');
+      $('detail-thumbs').innerHTML = '';
+    }
 
     if (p.variants && p.variants.length) {
       detailVariant = p.variants[0];
@@ -1830,6 +1859,27 @@
     $('edit-variant-rows').appendChild(createEditVariantRow(null));
   });
 
+  let editKeptImages = []; // الصور الحالية المحتفظ بها (روابط) لمنتج قيد التعديل
+
+  function renderEditImageThumbs() {
+    const wrap = $('edit-product-current-images');
+    wrap.innerHTML = editKeptImages.map((url, i) => `
+      <div class="relative w-16 h-16">
+        <img src="${escapeHtml(url)}" class="w-full h-full object-cover border border-[#E5E5E5]">
+        <button type="button" class="btn-remove-existing-image absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black text-white text-[10px] flex items-center justify-center" data-i="${i}" aria-label="Retirer">✕</button>
+      </div>
+    `).join('');
+    document.querySelectorAll('.btn-remove-existing-image').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editKeptImages.splice(parseInt(btn.getAttribute('data-i'), 10), 1);
+        renderEditImageThumbs();
+      });
+    });
+    $('edit-image-hint').textContent = editKeptImages.length >= 5
+      ? 'Limite de 5 photos atteinte. Retirez-en une pour en ajouter une nouvelle.'
+      : `Vous pouvez ajouter ${5 - editKeptImages.length} photo(s) supplémentaire(s).`;
+  }
+
   function openEditProduct(id) {
     const p = products.find(pr => pr.id === id);
     if (!p) return;
@@ -1841,12 +1891,11 @@
     $('edit-product-usage').value = p.usage_tips || '';
     $('edit-product-price').value = p.price;
     $('edit-product-image').value = '';
-    if (p.image_url) {
-      $('edit-product-current-image').src = p.image_url;
-      $('edit-product-current-image').classList.remove('hidden');
-    } else {
-      $('edit-product-current-image').classList.add('hidden');
-    }
+    $('edit-product-new-preview').classList.add('hidden');
+    $('edit-product-new-preview').innerHTML = '';
+
+    editKeptImages = (p.images && p.images.length) ? [...p.images] : (p.image_url ? [p.image_url] : []);
+    renderEditImageThumbs();
 
     editOriginalVariantIds = (p.variants || []).map(v => v.id);
     $('edit-variant-rows').innerHTML = '';
@@ -1860,6 +1909,19 @@
   $('btn-cancel-edit-product').addEventListener('click', closeEditProduct);
   $('modal-edit-product').addEventListener('click', (e) => { if (e.target === $('modal-edit-product')) closeEditProduct(); });
 
+  $('edit-product-image').addEventListener('change', () => {
+    const remaining = Math.max(0, 5 - editKeptImages.length);
+    let files = Array.from($('edit-product-image').files);
+    if (files.length > remaining) {
+      alert(`Vous ne pouvez ajouter que ${remaining} photo(s) de plus (limite de 5 au total).`);
+      files = files.slice(0, remaining);
+    }
+    const preview = $('edit-product-new-preview');
+    if (files.length === 0) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+    preview.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" class="w-16 h-16 object-cover border border-[#C5A880]">`).join('');
+    preview.classList.remove('hidden');
+  });
+
   $('edit-product-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = $('edit-product-id').value;
@@ -1870,7 +1932,7 @@
     const ingredients = $('edit-product-ingredients').value.trim();
     const usage_tips = $('edit-product-usage').value.trim();
     const price = parseInt($('edit-product-price').value, 10);
-    const file = $('edit-product-image').files[0];
+    const newFiles = Array.from($('edit-product-image').files).slice(0, Math.max(0, 5 - editKeptImages.length));
 
     if (!name || !price || price <= 0) return;
 
@@ -1878,25 +1940,30 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'ENREGISTREMENT…';
 
-    const updates = {
-      name, description, price,
-      full_description: full_description || null,
-      ingredients: ingredients || null,
-      usage_tips: usage_tips || null,
-    };
-
-    if (file) {
-      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const newImageUrls = [];
+    for (const file of newFiles) {
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const { error: uploadError } = await supabase.storage.from('products').upload(path, file);
       if (uploadError) {
-        alert("Erreur lors de l'envoi de la nouvelle image.");
+        alert("Erreur lors de l'envoi d'une nouvelle image.");
         console.error(uploadError);
         submitBtn.disabled = false;
         submitBtn.textContent = 'ENREGISTRER';
         return;
       }
-      updates.image_url = supabase.storage.from('products').getPublicUrl(path).data.publicUrl;
+      newImageUrls.push(supabase.storage.from('products').getPublicUrl(path).data.publicUrl);
     }
+
+    const finalImages = [...editKeptImages, ...newImageUrls].slice(0, 5);
+
+    const updates = {
+      name, description, price,
+      full_description: full_description || null,
+      ingredients: ingredients || null,
+      usage_tips: usage_tips || null,
+      images: finalImages,
+      image_url: finalImages[0] || null,
+    };
 
     const { error } = await supabase.from('products').update(updates).eq('id', id);
 
@@ -1948,13 +2015,13 @@
     if (variantsHadError) alert("Le produit a été modifié mais une erreur est survenue avec certaines options.");
 
     // نحيدو الصورة القديمة من التخزين إذا تبدلات بواحدة جديدة
-    if (file && oldProduct && oldProduct.image_url) {
-      const idx = oldProduct.image_url.indexOf('/products/');
-      if (idx !== -1) {
-        const oldPath = oldProduct.image_url.slice(idx + '/products/'.length);
-        supabase.storage.from('products').remove([oldPath]).catch(() => {});
-      }
-    }
+    // نحيدو من التخزين الصور اللي تحيدات (كانت قبل، ماشي موجودة فـ finalImages دابا)
+    const oldImages = (oldProduct && oldProduct.images && oldProduct.images.length) ? oldProduct.images : (oldProduct && oldProduct.image_url ? [oldProduct.image_url] : []);
+    const removedImages = oldImages.filter(url => !finalImages.includes(url));
+    removedImages.forEach(url => {
+      const idx = url.indexOf('/products/');
+      if (idx !== -1) supabase.storage.from('products').remove([url.slice(idx + '/products/'.length)]).catch(() => {});
+    });
 
     closeEditProduct();
     await loadProducts();
@@ -1962,10 +2029,14 @@
   });
 
   $('input-product-image').addEventListener('change', () => {
-    const file = $('input-product-image').files[0];
+    let files = Array.from($('input-product-image').files);
+    if (files.length > 5) {
+      alert('5 photos maximum. Seules les 5 premières seront utilisées.');
+      files = files.slice(0, 5);
+    }
     const preview = $('product-image-preview');
-    if (!file) { preview.classList.add('hidden'); return; }
-    preview.src = URL.createObjectURL(file);
+    if (files.length === 0) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+    preview.innerHTML = files.map(f => `<img src="${URL.createObjectURL(f)}" class="w-16 h-16 object-cover border border-[#E5E5E5]">`).join('');
     preview.classList.remove('hidden');
   });
 
@@ -1999,7 +2070,7 @@
     const ingredients = $('input-product-ingredients').value.trim();
     const usage_tips = $('input-product-usage').value.trim();
     const basePrice = parseInt($('input-product-price').value, 10);
-    const file = $('input-product-image').files[0];
+    const files = Array.from($('input-product-image').files).slice(0, 5);
     const variantRows = collectVariantRows();
 
     if (!name || !basePrice || basePrice <= 0) return;
@@ -2008,25 +2079,26 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'AJOUT EN COURS…';
 
-    let image_url = null;
-    if (file) {
-      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const images = [];
+    for (const file of files) {
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
       const { error: uploadError } = await supabase.storage.from('products').upload(path, file);
       if (uploadError) {
-        alert("Erreur lors de l'envoi de l'image.");
+        alert("Erreur lors de l'envoi d'une image.");
         console.error(uploadError);
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>AJOUTER LE PRODUIT';
         return;
       }
-      image_url = supabase.storage.from('products').getPublicUrl(path).data.publicUrl;
+      images.push(supabase.storage.from('products').getPublicUrl(path).data.publicUrl);
     }
+    const image_url = images[0] || null;
 
     // إذا كاينة خيارات، السعر الأساسي كيبقى أصغر سعر منهم (للعرض فقط فبطاقة المنتج)
     const price = variantRows.length ? Math.min(...variantRows.map(v => v.price)) : basePrice;
 
     const { data: newProduct, error } = await supabase.from('products').insert({
-      name, price, description, image_url,
+      name, price, description, image_url, images,
       full_description: full_description || null,
       ingredients: ingredients || null,
       usage_tips: usage_tips || null,
@@ -2053,6 +2125,7 @@
     await loadProducts();
     $('product-form').reset();
     $('product-image-preview').classList.add('hidden');
+    $('product-image-preview').innerHTML = '';
     $('variant-rows').innerHTML = '';
     $('input-product-name').focus();
   });
